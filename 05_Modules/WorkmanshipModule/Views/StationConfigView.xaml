@@ -1,0 +1,167 @@
+﻿<UserControl
+    x:Class="WorkmanshipModule.Views.StationConfigView"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:hc="https://handyorg.github.io/handycontrol"
+    xmlns:local="clr-namespace:WorkmanshipModule.Views"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    d:DesignHeight="450"
+    d:DesignWidth="800"
+    mc:Ignorable="d">
+
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="pack://application:,,,/ProductionLineManage.Shared;component/Assets/Styles/Dictionary1.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </UserControl.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="auto" />
+            <RowDefinition Height="auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <Border
+            Height="40"
+            Margin="0,0,0,20"
+            Padding="10"
+            VerticalAlignment="Top"
+            Background="White">
+            <TextBlock
+                VerticalAlignment="Center"
+                FontSize="18"
+                FontWeight="Bold"
+                Text="站点配置" />
+        </Border>
+
+        <StackPanel
+            Grid.Row="1"
+            Margin="10"
+            Orientation="Horizontal">
+            <TextBlock
+                Margin="25,0,0,0"
+                VerticalAlignment="Center"
+                FontSize="15"
+                Text="产线  " />
+            <ComboBox
+                Width="150"
+                DisplayMemberPath="Name"
+                FontSize="15"
+                ItemsSource="{Binding Lines}"
+                SelectedIndex="{Binding LineIndex}"
+                SelectedItem="{Binding SelectedLine}" />
+
+            <Button
+                Height="auto"
+                Margin="16,0,0,0"
+                BorderThickness="0"
+                Command="{Binding AddCommand}"
+                Content="&#xe6f3;"
+                FontFamily="{StaticResource fontFamily1}"
+                FontSize="23"
+                Foreground="#1485FF"
+                ToolTip="新增工位" />
+
+            <Button
+                Height="auto"
+                Margin="16,0,0,0"
+                BorderThickness="0"
+                Command="{Binding RefreshCommand}"
+                Content="&#x10232;"
+                FontFamily="{StaticResource fontFamily1}"
+                FontSize="23"
+                Foreground="#1485FF"
+                ToolTip="刷新" />
+
+            <Button
+                Height="auto"
+                Margin="16,0,0,0"
+                BorderThickness="0"
+                Command="{Binding CopyCommand}"
+                Content="&#xe611;"
+                FontFamily="{StaticResource fontFamily1}"
+                FontSize="23"
+                Foreground="#1485FF"
+                ToolTip="产线工位配置复制" />
+        </StackPanel>
+
+        <DataGrid
+            Grid.Row="2"
+            Margin="8"
+            AutoGenerateColumns="False"
+            CanUserAddRows="False"
+            CanUserDeleteRows="False"
+            CellStyle="{StaticResource DataGridCellStyle1}"
+            ColumnHeaderStyle="{StaticResource DataGridColumnHeaderStyle1}"
+            IsReadOnly="True"
+            ItemsSource="{Binding LineStations, Mode=OneWay}"
+            RowHeaderWidth="0"
+            SelectionMode="Single"
+            SelectionUnit="FullRow">
+            <DataGrid.Columns>
+                <DataGridTextColumn
+                    Width="50"
+                    Binding="{Binding Id, Mode=OneWay}"
+                    Header="Id" />
+
+                <DataGridTextColumn
+                    Width="120"
+                    Binding="{Binding LineName, Mode=OneWay}"
+                    Header="产线" />
+
+                <DataGridTextColumn
+                    Width="150"
+                    Binding="{Binding Code, Mode=OneWay}"
+                    Header="工位代号" />
+
+                <DataGridTextColumn
+                    Width="180"
+                    Binding="{Binding Name, Mode=OneWay}"
+                    Header="工位名称" />
+
+                <DataGridTextColumn
+                    Width="200"
+                    Binding="{Binding Remarks, Mode=OneWay}"
+                    Header="备注" />
+
+                <DataGridTextColumn
+                    Width="150"
+                    Binding="{Binding CreateTime, Mode=OneWay}"
+                    Header="创建时间" />
+
+                <DataGridTextColumn
+                    Width="150"
+                    Binding="{Binding UpdateTime, Mode=OneWay}"
+                    Header="更新时间" />
+
+                <DataGridTemplateColumn Width="140" Header="操作">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <StackPanel HorizontalAlignment="Center" Orientation="Horizontal">
+                                <Button
+                                    Width="50"
+                                    Margin="2"
+                                    Command="{Binding DataContext.EditCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                    CommandParameter="{Binding}"
+                                    Content="编辑"
+                                    FontSize="12" />
+                                <Button
+                                    Width="50"
+                                    Margin="2"
+                                    Command="{Binding DataContext.DeleteCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                    CommandParameter="{Binding}"
+                                    Content="删除"
+                                    FontSize="12"
+                                    Style="{StaticResource removeButtonStyle}" />
+                            </StackPanel>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+            </DataGrid.Columns>
+        </DataGrid>
+    </Grid>
+</UserControl>

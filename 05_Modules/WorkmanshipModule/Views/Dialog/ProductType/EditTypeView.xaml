@@ -1,0 +1,124 @@
+﻿<UserControl
+    x:Class="WorkmanshipModule.Views.Dialog.EditTypeView"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:c="clr-namespace:ProductionLineManage.Shared.Controls;assembly=ProductionLineManage.Shared"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:local="clr-namespace:WorkmanshipModule.Views"
+    xmlns:hc="https://handyorg.github.io/handycontrol"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    Width="600"
+    Height="280"
+    mc:Ignorable="d">
+    <UserControl.Resources>
+        <!--  资源字典  -->
+        <ResourceDictionary>
+            <!--  可存多个资源字典，资源合并  -->
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="pack://application:,,,/ProductionLineManage.Shared;component/Assets/Styles/Dictionary1.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </UserControl.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="40" />
+            <RowDefinition />
+            <RowDefinition Height="50" />
+        </Grid.RowDefinitions>
+
+        <!--  1.标题栏  -->
+        <c:TitleBarControl
+            FontIcon="&#xe728;"
+            ShowMaximizeButton="False"
+            ShowMinimizeButton="False"
+            TitleName="{Binding Title}" />
+
+        <!--  2  -->
+        <Grid
+            Grid.Row="1"
+            Width="500"
+            Height="170">
+            <Grid.RowDefinitions>
+                <RowDefinition />
+                <RowDefinition />
+                <RowDefinition />
+                <RowDefinition />
+            </Grid.RowDefinitions>
+
+            <DockPanel Margin="0,5,0,0">
+                <!--  ID标题  -->
+                <TextBlock
+                    Margin="36,0,7,0"
+                    VerticalAlignment="Center"
+                    Text="ID:" />
+                <!--  ID内容  -->
+                <TextBlock
+                    HorizontalAlignment="Left"
+                    VerticalAlignment="Center"
+                    Text="{Binding TypeInfo.Id}" />
+            </DockPanel>
+            <!--  型号名称  -->
+            <DockPanel Grid.Row="1" Margin="0,10,0,0">
+                <TextBlock Margin="0,0,7,0" VerticalAlignment="Center">
+                    <Run Text="型号名称:" />
+                    <Run Foreground="Red" Text="*" />
+                </TextBlock>
+                <TextBox Text="{Binding TypeInfo.Name}">
+                    <TextBox.InputBindings>
+                        <KeyBinding Key="Return" Command="{Binding EditCommand}" />
+                    </TextBox.InputBindings>
+                </TextBox>
+            </DockPanel>
+            <!--  下发型号代号  -->
+            <DockPanel Grid.Row="2" Margin="0,10,0,0">
+                <TextBlock Margin="0,0,7,0" VerticalAlignment="Center">
+                    <Run Text="下发型号代号:" />
+                    <Run Foreground="Red" Text="*" />
+                </TextBlock>
+                <hc:NumericUpDown
+                    HorizontalAlignment="Left"
+                    Minimum="1"
+                    Maximum="32767"
+                    Value="{Binding TypeInfo.IssueCode}" />
+            </DockPanel>
+            <!--  备注  -->
+            <DockPanel Grid.Row="3" Margin="0,10,0,0">
+                <TextBlock
+                    Margin="32,0,7,0"
+                    VerticalAlignment="Center"
+                    Text="备注:" />
+                <TextBox Text="{Binding TypeInfo.Remarks}">
+                    <TextBox.InputBindings>
+                        <KeyBinding Key="Return" Command="{Binding EditCommand}" />
+                    </TextBox.InputBindings>
+                </TextBox>
+            </DockPanel>
+        </Grid>
+
+        <!--  3  -->
+
+        <Grid Grid.Row="2">
+            <Button
+                Width="70"
+                Height="35"
+                Margin="150,0,0,3"
+                Padding="8,3"
+                HorizontalAlignment="Left"
+                Command="{Binding EditCommand}"
+                Content="修改"
+                FontSize="13" />
+            <Button
+                Width="70"
+                Height="35"
+                Margin="0,0,150,3"
+                Padding="8,3"
+                HorizontalAlignment="Right"
+                Command="{Binding ClosebtnCommand}"
+                Content="取消"
+                FontSize="13" />
+        </Grid>
+    </Grid>
+
+
+</UserControl>

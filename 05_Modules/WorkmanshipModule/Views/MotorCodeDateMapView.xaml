@@ -1,0 +1,146 @@
+<UserControl
+    x:Class="WorkmanshipModule.Views.MotorCodeDateMapView"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    d:DesignHeight="500"
+    d:DesignWidth="900"
+    mc:Ignorable="d">
+    <Grid Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+        <Border
+            Height="40"
+            Margin="0,0,0,12"
+            Padding="10"
+            Background="White">
+            <TextBlock
+                VerticalAlignment="Center"
+                FontSize="18"
+                FontWeight="Bold"
+                Text="日期代号对照（按型号）" />
+        </Border>
+        <StackPanel
+            Grid.Row="1"
+            Margin="0,0,0,12"
+            Orientation="Horizontal">
+            <TextBlock VerticalAlignment="Center" Text="型号：" />
+            <ComboBox
+                Width="200"
+                Margin="8,0,0,0"
+                DisplayMemberPath="Name"
+                ItemsSource="{Binding Types}"
+                SelectedItem="{Binding SelectedType}" />
+            <TextBlock
+                Margin="16,0,0,0"
+                VerticalAlignment="Center"
+                Foreground="#666"
+                Text="月1-12、日1-31 必填；年可选，可提前维护多个年份" />
+        </StackPanel>
+        <TabControl Grid.Row="2" SelectedIndex="{Binding SelectedTabIndex}">
+            <TabItem Header="月份 1-12">
+                <DataGrid
+                    AutoGenerateColumns="False"
+                    CanUserAddRows="False"
+                    ItemsSource="{Binding MonthRows}">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn
+                            Width="80"
+                            Binding="{Binding MapKey}"
+                            Header="月份"
+                            IsReadOnly="True" />
+                        <DataGridTextColumn
+                            Width="*"
+                            Binding="{Binding MapCode, UpdateSourceTrigger=PropertyChanged}"
+                            Header="代号" />
+                    </DataGrid.Columns>
+                </DataGrid>
+            </TabItem>
+            <TabItem Header="日期 1-31">
+                <DataGrid
+                    AutoGenerateColumns="False"
+                    CanUserAddRows="False"
+                    ItemsSource="{Binding DayRows}">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn
+                            Width="80"
+                            Binding="{Binding MapKey}"
+                            Header="日"
+                            IsReadOnly="True" />
+                        <DataGridTextColumn
+                            Width="*"
+                            Binding="{Binding MapCode, UpdateSourceTrigger=PropertyChanged}"
+                            Header="代号" />
+                    </DataGrid.Columns>
+                </DataGrid>
+            </TabItem>
+            <TabItem Header="年份（可选）">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+                    <StackPanel Margin="0,0,0,8" Orientation="Horizontal">
+                        <TextBlock VerticalAlignment="Center" Text="年份：" />
+                        <TextBox
+                            Width="100"
+                            Margin="8,0,8,0"
+                            VerticalAlignment="Center"
+                            Text="{Binding NewYearInput, UpdateSourceTrigger=PropertyChanged}" />
+                        <Button
+                            Margin="0,0,8,0"
+                            Command="{Binding AddYearCommand}"
+                            Content="添加年份" />
+                        <Button Command="{Binding AddCurrentYearCommand}" Content="添加当前年" />
+                    </StackPanel>
+                    <DataGrid
+                        Grid.Row="1"
+                        AutoGenerateColumns="False"
+                        CanUserAddRows="False"
+                        ItemsSource="{Binding YearRows}">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn
+                                Width="100"
+                                Binding="{Binding MapKey, UpdateSourceTrigger=PropertyChanged}"
+                                Header="年份" />
+                            <DataGridTextColumn
+                                Width="*"
+                                Binding="{Binding MapCode, UpdateSourceTrigger=PropertyChanged}"
+                                Header="代号" />
+                            <DataGridTemplateColumn Width="60">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <Button
+                                            Command="{Binding DataContext.DeleteYearCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                            CommandParameter="{Binding}"
+                                            Content="删" />
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </Grid>
+            </TabItem>
+        </TabControl>
+        <StackPanel
+            Grid.Row="3"
+            Margin="0,12,0,0"
+            Orientation="Horizontal">
+            <Button
+                Width="80"
+                Margin="0,0,8,0"
+                Command="{Binding SaveCommand}"
+                Content="保存" />
+            <Button
+                Width="80"
+                Command="{Binding RefreshCommand}"
+                Content="刷新" />
+        </StackPanel>
+    </Grid>
+</UserControl>
+

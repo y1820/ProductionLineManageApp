@@ -1,0 +1,97 @@
+﻿<UserControl
+    x:Class="ProductionModule.Views.IssueProductModelView"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:local="clr-namespace:ProductionModule.Views"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    d:DesignHeight="450"
+    d:DesignWidth="800"
+    mc:Ignorable="d">
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="pack://application:,,,/ProductionLineManage.Shared;component/Assets/Styles/Dictionary1.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </UserControl.Resources>
+
+    <Grid Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <!--  标题  -->
+        <Border
+            Height="40"
+            Margin="0,0,0,20"
+            Padding="10"
+            Background="White">
+            <TextBlock
+                VerticalAlignment="Center"
+                FontSize="18"
+                FontWeight="Bold"
+                Text="型号下发" />
+        </Border>
+
+        <!--  下发操作区  -->
+        <Border
+            Grid.Row="1"
+            Padding="24"
+            Background="White"
+            CornerRadius="4">
+            <StackPanel MaxWidth="560" HorizontalAlignment="Left">
+                <!--  当前下发型号  -->
+                <DockPanel Margin="0,0,0,20">
+                    <TextBlock
+                        Width="120"
+                        VerticalAlignment="Center"
+                        FontWeight="SemiBold"
+                        Text="当前下发型号:" />
+                    <TextBlock
+                        VerticalAlignment="Center"
+                        Foreground="#1485FF"
+                        Text="{Binding CurrentIssueSummary}" />
+                </DockPanel>
+
+                <!--  选择型号  -->
+                <DockPanel Margin="0,0,0,24">
+                    <TextBlock
+                        Width="120"
+                        VerticalAlignment="Center"
+                        FontWeight="SemiBold"
+                        Text="选择型号:" />
+                    <ComboBox
+                        MinWidth="280"
+                        HorizontalAlignment="Left"
+                        DisplayMemberPath="Name"
+                        ItemsSource="{Binding Types}"
+                        SelectedItem="{Binding SelectedType}" />
+                </DockPanel>
+
+                <!--  选中型号代号预览  -->
+                <DockPanel Margin="0,0,0,24">
+                    <TextBlock
+                        Width="120"
+                        VerticalAlignment="Center"
+                        FontWeight="SemiBold"
+                        Text="下发型号代号:" />
+                    <TextBlock VerticalAlignment="Center">
+                        <Run Text="{Binding SelectedType.IssueCode, TargetNullValue=--, FallbackValue=--}" />
+                    </TextBlock>
+                </DockPanel>
+
+                <!--  下发按钮  -->
+                <Button
+                    Width="120"
+                    Height="36"
+                    HorizontalAlignment="Left"
+                    Command="{Binding IssueCommand}"
+                    Content="下发型号"
+                    FontSize="14" />
+            </StackPanel>
+        </Border>
+    </Grid>
+</UserControl>

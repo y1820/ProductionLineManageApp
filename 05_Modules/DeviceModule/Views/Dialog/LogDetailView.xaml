@@ -1,0 +1,98 @@
+﻿<UserControl
+    x:Class="DeviceModule.Views.Dialog.LogDetailView"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:c="clr-namespace:ProductionLineManage.Shared.Controls;assembly=ProductionLineManage.Shared"
+    Width="600"
+    Height="450">
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="pack://application:,,,/ProductionLineManage.Shared;component/Assets/Styles/Dictionary1.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </UserControl.Resources>
+
+    <Grid Background="White">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="40" />
+            <RowDefinition />
+            <RowDefinition Height="50" />
+        </Grid.RowDefinitions>
+
+        <c:TitleBarControl
+            FontIcon="&#xe728;"
+            ShowMaximizeButton="False"
+            ShowMinimizeButton="False"
+            TitleName="日志详情" />
+
+        <ScrollViewer Grid.Row="1" Margin="20">
+            <StackPanel>
+                <Border
+                    Margin="0,0,0,15"
+                    Padding="10"
+                    Background="#F5F5F5"
+                    CornerRadius="5">
+                    <TextBlock FontWeight="Bold" Text="{Binding LogEntry.Timestamp}" />
+                </Border>
+
+                <TextBlock Margin="0,10,0,5" FontWeight="Bold">级别:</TextBlock>
+                <TextBlock Margin="0,0,0,10" Text="{Binding LogEntry.Level}" />
+
+                <TextBlock Margin="0,10,0,5" FontWeight="Bold">设备编码:</TextBlock>
+                <TextBlock Margin="0,0,0,10" Text="{Binding LogEntry.DeviceCode}" />
+
+                <TextBlock Margin="0,10,0,5" FontWeight="Bold">消息内容:</TextBlock>
+                <TextBlock
+                    Margin="0,0,0,10"
+                    Text="{Binding LogEntry.Message}"
+                    TextWrapping="Wrap" />
+
+                <TextBlock
+                    Margin="0,10,0,5"
+                    FontWeight="Bold"
+                    Visibility="{Binding HasCommand, Converter={StaticResource BoolToVisibility}}">
+                    指令:
+                </TextBlock>
+                <TextBlock
+                    Margin="0,0,0,10"
+                    FontFamily="Consolas"
+                    Text="{Binding LogEntry.Command}"
+                    Visibility="{Binding HasCommand, Converter={StaticResource BoolToVisibility}}" />
+
+                <TextBlock
+                    Margin="0,10,0,5"
+                    FontWeight="Bold"
+                    Visibility="{Binding HasResponse, Converter={StaticResource BoolToVisibility}}">
+                    响应:
+                </TextBlock>
+                <TextBlock
+                    Margin="0,0,0,10"
+                    FontFamily="Consolas"
+                    Text="{Binding LogEntry.Response}"
+                    Visibility="{Binding HasResponse, Converter={StaticResource BoolToVisibility}}" />
+
+                <TextBlock
+                    Margin="0,10,0,5"
+                    FontWeight="Bold"
+                    Visibility="{Binding HasException, Converter={StaticResource BoolToVisibility}}">
+                    异常详情:
+                </TextBlock>
+                <TextBlock
+                    Margin="0,0,0,10"
+                    Foreground="Red"
+                    Text="{Binding LogEntry.Exception}"
+                    TextWrapping="Wrap"
+                    Visibility="{Binding HasException, Converter={StaticResource BoolToVisibility}}" />
+            </StackPanel>
+        </ScrollViewer>
+
+        <Button
+            Grid.Row="2"
+            Width="70"
+            Height="35"
+            HorizontalAlignment="Center"
+            Command="{Binding CloseCommand}"
+            Content="关闭" />
+    </Grid>
+</UserControl>

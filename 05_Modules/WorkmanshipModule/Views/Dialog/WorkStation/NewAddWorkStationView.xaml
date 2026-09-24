@@ -1,0 +1,154 @@
+﻿<UserControl
+    x:Class="WorkmanshipModule.Views.Dialog.NewAddWorkStationView"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:local="clr-namespace:WorkmanshipModule.Views.Dialog"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    Width="600"
+    Height="300"
+    FontSize="14"
+    mc:Ignorable="d">
+    <!--  资源  -->
+    <UserControl.Resources>
+        <!--  资源字典  -->
+        <ResourceDictionary>
+            <!--  可存多个资源字典，资源合并  -->
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="pack://application:,,,/ProductionLineManage.Shared;component/Assets/Styles/Dictionary1.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </UserControl.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="30" />
+            <RowDefinition />
+            <RowDefinition Height="40" />
+        </Grid.RowDefinitions>
+        <!--  1 标题栏  -->
+        <Border
+            Height="30"
+            Padding="5"
+            Background="{StaticResource TitleBrush}"
+            CornerRadius="5,5,0,0">
+            <Grid>
+                <StackPanel
+                    HorizontalAlignment="Left"
+                    VerticalAlignment="Center"
+                    Orientation="Horizontal">
+                    <TextBlock
+                        Margin="0,0,5,0"
+                        FontFamily="{StaticResource fontFamily1}"
+                        FontSize="15"
+                        Foreground="White"
+                        Text="&#xe6f3;" />
+                    <TextBlock Foreground="White" Text="{Binding Title}" />
+                </StackPanel>
+
+                <!--  右上角关闭窗口按钮  -->
+                <Button
+                    Width="30"
+                    Height="30"
+                    HorizontalAlignment="Right"
+                    VerticalAlignment="Center"
+                    Background="Transparent"
+                    BorderThickness="0"
+                    Command="{Binding CloseCommand}"
+                    Content="&#xe600;"
+                    FontFamily="{StaticResource fontFamily1}"
+                    Foreground="White"
+                    WindowChrome.IsHitTestVisibleInChrome="True">
+                    <Button.Template>
+                        <ControlTemplate TargetType="Button">
+                            <Border
+                                x:Name="bor2"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}">
+                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                            </Border>
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter TargetName="bor2" Property="Opacity" Value="0.7" />
+                                </Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Button.Template>
+                </Button>
+            </Grid>
+        </Border>
+
+        <!--  2.中间主要内容  -->
+        <StackPanel Grid.Row="1" Margin="20">
+
+            <!--  工位代号  -->
+            <DockPanel Margin="0,15,0,0">
+                <TextBlock Margin="36,0,7,0" VerticalAlignment="Center">
+                    <Run>工位代号</Run>
+                    <Run Foreground="Red">*</Run>
+                </TextBlock>
+                <TextBox VerticalAlignment="Center" Text="{Binding StationInfo.Code}" />
+
+            </DockPanel>
+
+            <!--  工位名称  -->
+            <DockPanel Margin="0,15,0,0">
+                <TextBlock Margin="36,0,7,0" VerticalAlignment="Center">
+                    <Run>工位名称</Run>
+                    <Run Foreground="Red">*</Run>
+                </TextBlock>
+                <TextBox VerticalAlignment="Center" Text="{Binding StationInfo.Name}" />
+            </DockPanel>
+
+            <!--  所属产线  -->
+            <DockPanel Margin="0,15,0,0">
+                <TextBlock Margin="36,0,7,0" VerticalAlignment="Center">
+                    <Run>所属产线</Run>
+                    <Run Foreground="Red">*</Run>
+                </TextBlock>
+                <ComboBox
+                    x:Name="cb"
+                    ItemsSource="{Binding Lines}"
+                    SelectedItem="{Binding LineSelectedItem}">
+                    <ComboBox.ItemTemplate>
+                        <DataTemplate>
+                            <TextBlock Text="{Binding Name}" />
+                        </DataTemplate>
+                    </ComboBox.ItemTemplate>
+                </ComboBox>
+            </DockPanel>
+
+            <!--  备注  -->
+            <DockPanel Margin="0,15,0,0">
+                <TextBlock
+                    Margin="71,0,7,0"
+                    VerticalAlignment="Center"
+                    Text="备注:" />
+                <TextBox VerticalAlignment="Center" Text="{Binding StationInfo.Remarks}" />
+            </DockPanel>
+        </StackPanel>
+
+        <!--  3.最下方按钮  -->
+        <Grid Grid.Row="2">
+            <Button
+                Width="70"
+                Height="35"
+                Margin="150,0,0,3"
+                Padding="8,3"
+                HorizontalAlignment="Left"
+                Command="{Binding NewAddCommand}"
+                Content=" 新增"
+                FontSize="13" />
+            <Button
+                Width="70"
+                Height="35"
+                Margin="0,0,150,3"
+                Padding="8,3"
+                HorizontalAlignment="Right"
+                Command="{Binding CloseCommand}"
+                Content="取消"
+                FontSize="13" />
+        </Grid>
+    </Grid>
+</UserControl>

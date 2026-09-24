@@ -1,0 +1,23 @@
+## Visual Studio / 编译产物
+.vs/
+[Bb]in/
+[Oo]bj/
+[Dd]ebug/
+[Rr]elease/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+*.cache
+*_wpftmp.csproj
+
+## NuGet
+**/[Pp]ackages/*
+*.nupkg
+
+## 运行日志
+**/Logs/
+*.log
+
+## 含数据库密码，勿提交；本地用 appsettings.example.json 复制改名
+01_Startup/ProductionLineManage.Host/appsettings.json

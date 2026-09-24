@@ -1,0 +1,166 @@
+﻿<UserControl
+    x:Class="WorkmanshipModule.Views.Dialog.AddDataCollectConfigView"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:c="clr-namespace:ProductionLineManage.Shared.Controls;assembly=ProductionLineManage.Shared"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:hc="https://handyorg.github.io/handycontrol"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    Width="550"
+    Height="620"
+    mc:Ignorable="d">
+
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="pack://application:,,,/ProductionLineManage.Shared;component/Assets/Styles/Dictionary1.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </UserControl.Resources>
+
+    <Grid Background="White">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="40" />
+            <RowDefinition />
+            <RowDefinition Height="50" />
+        </Grid.RowDefinitions>
+
+        <c:TitleBarControl
+            FontIcon="&#xe6f3;"
+            ShowMaximizeButton="False"
+            ShowMinimizeButton="False"
+            TitleName="{Binding Title}" />
+
+        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+            <StackPanel Margin="30">
+                <DockPanel Margin="0,10,0,0">
+                    <TextBlock Margin="0,0,7,0" VerticalAlignment="Center">
+                        <Run Text="型号:" />
+                        <Run Foreground="Red" Text="*" />
+                    </TextBlock>
+                    <ComboBox
+                        DisplayMemberPath="Name"
+                        ItemsSource="{Binding Types}"
+                        SelectedIndex="{Binding TypeSelectIndex}"
+                        SelectedItem="{Binding TypeSelectItem}" />
+                </DockPanel>
+
+                <DockPanel Margin="0,15,0,0">
+                    <TextBlock Margin="0,0,7,0" VerticalAlignment="Center">
+                        <Run Text="产线:" />
+                        <Run Foreground="Red" Text="*" />
+                    </TextBlock>
+                    <ComboBox
+                        DisplayMemberPath="Name"
+                        ItemsSource="{Binding Lines}"
+                        SelectedIndex="{Binding LineSelectIndex}"
+                        SelectedItem="{Binding LineSelectItem}" />
+                </DockPanel>
+
+                <DockPanel Margin="0,15,0,0">
+                    <TextBlock Margin="0,0,7,0" VerticalAlignment="Center">
+                        <Run Text="工位:" />
+                        <Run Foreground="Red" Text="*" />
+                    </TextBlock>
+                    <ComboBox
+                        DisplayMemberPath="DisplayText"
+                        IsEnabled="{Binding IsStationEnabled}"
+                        ItemsSource="{Binding Stations}"
+                        SelectedIndex="{Binding StationSelectIndex}"
+                        SelectedItem="{Binding StationSelectItem}" />
+                </DockPanel>
+
+                <DockPanel Margin="0,15,0,0">
+                    <TextBlock
+                        Margin="0,0,7,0"
+                        VerticalAlignment="Center"
+                        Text="通讯协议:" />
+                    <TextBlock
+                        x:Name="ProtocolTypeText"
+                        VerticalAlignment="Center"
+                        Text="{Binding StationProtocolType}" />
+                </DockPanel>
+
+                <DockPanel Margin="0,15,0,0">
+                    <TextBlock Margin="0,0,7,0" VerticalAlignment="Center">
+                        <Run Text="数据名称:" />
+                        <Run Foreground="Red" Text="*" />
+                    </TextBlock>
+                    <TextBox Text="{Binding DataName, UpdateSourceTrigger=PropertyChanged}" />
+                </DockPanel>
+
+                <DockPanel Margin="0,15,0,0">
+                    <TextBlock Margin="0,0,7,0" VerticalAlignment="Center">
+                        <Run Text="数据类型:" />
+                        <Run Foreground="Red" Text="*" />
+                    </TextBlock>
+                    <ComboBox
+                        x:Name="DataTypeComboBox"
+                        IsEnabled="{Binding IsDataTypeEnabled}"
+                        ItemsSource="{Binding DataTypes}"
+                        SelectedIndex="{Binding DataTypeIndex}"
+                        SelectedItem="{Binding DataTypeSelectedItem}" />
+                </DockPanel>
+
+                <DockPanel Margin="0,15,0,0">
+                    <TextBlock
+                        Margin="0,0,0,7"
+                        VerticalAlignment="Center"
+                        DockPanel.Dock="Top">
+                        <Run Text="PLC 地址:" />
+                        <Run Foreground="Red" Text="*" />
+                    </TextBlock>
+                    <ScrollViewer
+                        Height="140"
+                        HorizontalScrollBarVisibility="Auto"
+                        VerticalScrollBarVisibility="Auto">
+                        <c:DataAddressPanel
+                            DataType="{Binding SelectedItem, ElementName=DataTypeComboBox}"
+                            OutAddress="{Binding Address, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                            OutDataLength="{Binding DataLength, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                            ProtocolType="{Binding Text, ElementName=ProtocolTypeText}" />
+                    </ScrollViewer>
+                </DockPanel>
+
+                <DockPanel Margin="0,15,0,0">
+                    <TextBlock Margin="0,0,7,0" VerticalAlignment="Center" Text="单位:" />
+                    <TextBox Text="{Binding DataUnit}" />
+                </DockPanel>
+
+                <DockPanel Margin="0,15,0,0">
+                    <CheckBox Content="是否启用" IsChecked="{Binding IsEnabled}" />
+                </DockPanel>
+
+                <DockPanel Margin="0,15,0,0">
+                    <TextBlock Margin="0,0,7,0" VerticalAlignment="Top" Text="备注:" />
+                    <TextBox
+                        Height="60"
+                        AcceptsReturn="True"
+                        Text="{Binding Remarks}"
+                        TextWrapping="Wrap" />
+                </DockPanel>
+            </StackPanel>
+        </ScrollViewer>
+
+        <Grid Grid.Row="2">
+            <Button
+                Width="70"
+                Height="35"
+                Margin="150,0,0,13"
+                Padding="8,3"
+                HorizontalAlignment="Left"
+                Command="{Binding AddCommand}"
+                Content="新增"
+                FontSize="13" />
+            <Button
+                Width="70"
+                Height="35"
+                Margin="0,0,150,13"
+                Padding="8,3"
+                HorizontalAlignment="Right"
+                Command="{Binding CancelCommand}"
+                Content="取消"
+                FontSize="13" />
+        </Grid>
+    </Grid>
+</UserControl>

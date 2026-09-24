@@ -1,0 +1,87 @@
+﻿<UserControl
+    x:Class="ProductionLineManage.Shared.Controls.TitleBarControl"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:local="clr-namespace:ProductionLineManage.Shared.Controls"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    d:DesignHeight="40"
+    d:DesignWidth="800"
+    mc:Ignorable="d">
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="pack://application:,,,/ProductionLineManage.Shared;component/Assets/Styles/Dictionary1.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </UserControl.Resources>
+
+    <!--  标题栏背景 Background="{Binding TitleBarBackground, RelativeSource={RelativeSource AncestorType=UserControl}, FallbackValue=#2D2D30}"  -->
+    <Border Background="{StaticResource TitleBrush}">
+        <Grid>
+            <!--  左侧区域：图标和标题  -->
+            <StackPanel
+                Margin="12,0,0,0"
+                VerticalAlignment="Center"
+                Orientation="Horizontal">
+                <!--  应用图标  -->
+                <!--<Image x:Name="IconImage"
+                   Source="{Binding IconSource, RelativeSource={RelativeSource AncestorType=UserControl}}d🔳"
+                   Width="20" Height="20" Margin="0,0,8,0"
+                   />-->
+                <TextBlock
+                    x:Name="FontFamilyIcon"
+                    Margin="0,0,10,0"
+                    FontFamily="{StaticResource fontFamily1}"
+                    FontSize="18"
+                    Foreground="White"
+                    Text="{Binding FontIcon, RelativeSource={RelativeSource AncestorType=UserControl}, FallbackValue=🖥}" />
+
+
+
+                <!--  窗口标题  -->
+                <TextBlock
+                    x:Name="TitleText"
+                    VerticalAlignment="Center"
+                    FontSize="14"
+                    Foreground="#FFFFFF"
+                    Text="{Binding TitleName, RelativeSource={RelativeSource AncestorType=UserControl}, FallbackValue=弹窗标题栏}" />
+
+            </StackPanel>
+
+            <!--  右侧区域：窗口控制按钮  -->
+            <StackPanel HorizontalAlignment="Right" Orientation="Horizontal">
+                <!--  最小化按钮  -->
+                <Button
+                    x:Name="MinimizeButton"
+                    Click="MinimizeButton_Click"
+                    Content="&#xE921;"
+                    FontSize="15"
+                    Foreground="White"
+                    Style="{StaticResource WindowControlButtonStyle}"
+                    Visibility="{Binding ShowMinimizeButton, RelativeSource={RelativeSource AncestorType=UserControl}, Converter={StaticResource BoolToVisibility}}"
+                    WindowChrome.IsHitTestVisibleInChrome="True" />
+
+                <!--  最大化/还原按钮  -->
+                <Button
+                    x:Name="MaximizeButton"
+                    Click="MaximizeButton_Click"
+                    Content="&#xE922;"
+                    FontSize="15"
+                    Foreground="White"
+                    Style="{StaticResource WindowControlButtonStyle}"
+                    Visibility="{Binding ShowMaximizeButton, RelativeSource={RelativeSource AncestorType=UserControl}, Converter={StaticResource BoolToVisibility}}"
+                    WindowChrome.IsHitTestVisibleInChrome="True" />
+
+                <!--  关闭按钮  -->
+                <Button
+                    x:Name="CloseButton"
+                    Click="CloseButton_Click"
+                    FontSize="15"
+                    Foreground="White"
+                    Style="{StaticResource CloseButtonStyle}"
+                    WindowChrome.IsHitTestVisibleInChrome="True" />
+            </StackPanel>
+        </Grid>
+    </Border>
+</UserControl>

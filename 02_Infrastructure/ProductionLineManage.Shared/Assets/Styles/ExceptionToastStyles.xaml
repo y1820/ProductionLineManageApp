@@ -1,0 +1,113 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <SolidColorBrush x:Key="ExceptionToastBackgroundBrush" Color="#F2FFFFFF" />
+    <SolidColorBrush x:Key="ExceptionToastBorderBrush" Color="#FFE81123" />
+    <SolidColorBrush x:Key="ExceptionToastTitleBrush" Color="#FF1F1F1F" />
+    <SolidColorBrush x:Key="ExceptionToastMessageBrush" Color="#FF5C5C5C" />
+    <SolidColorBrush x:Key="ExceptionToastTimeBrush" Color="#FF888888" />
+    <SolidColorBrush x:Key="ExceptionToastAccentBrush" Color="#FFE81123" />
+
+    <Style x:Key="ExceptionToastContainerStyle" TargetType="Border">
+        <Setter Property="Width" Value="380" />
+        <Setter Property="Margin" Value="0,0,0,12" />
+        <Setter Property="Padding" Value="14,12" />
+        <Setter Property="Background" Value="{StaticResource ExceptionToastBackgroundBrush}" />
+        <Setter Property="BorderBrush" Value="{StaticResource ExceptionToastBorderBrush}" />
+        <Setter Property="BorderThickness" Value="0,0,0,3" />
+        <Setter Property="CornerRadius" Value="6" />
+        <Setter Property="Effect">
+            <Setter.Value>
+                <DropShadowEffect
+                    BlurRadius="16"
+                    Direction="270"
+                    Opacity="0.28"
+                    ShadowDepth="4"
+                    Color="#66000000" />
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style x:Key="ExceptionToastTitleStyle" TargetType="TextBlock">
+        <Setter Property="FontSize" Value="15" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="Foreground" Value="{StaticResource ExceptionToastTitleBrush}" />
+        <Setter Property="TextTrimming" Value="CharacterEllipsis" />
+    </Style>
+
+    <Style x:Key="ExceptionToastMessageStyle" TargetType="TextBlock">
+        <Setter Property="Margin" Value="0,8,0,0" />
+        <Setter Property="FontSize" Value="13" />
+        <Setter Property="Foreground" Value="{StaticResource ExceptionToastMessageBrush}" />
+        <Setter Property="TextWrapping" Value="Wrap" />
+        <Setter Property="MaxHeight" Value="96" />
+        <Setter Property="TextTrimming" Value="CharacterEllipsis" />
+    </Style>
+
+    <Style x:Key="ExceptionToastTimeStyle" TargetType="TextBlock">
+        <Setter Property="Margin" Value="0,8,0,0" />
+        <Setter Property="FontSize" Value="11" />
+        <Setter Property="Foreground" Value="{StaticResource ExceptionToastTimeBrush}" />
+    </Style>
+
+    <Style x:Key="ExceptionToastCloseButtonStyle" TargetType="Button">
+        <Setter Property="Width" Value="28" />
+        <Setter Property="Height" Value="28" />
+        <Setter Property="Padding" Value="0" />
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="Foreground" Value="#FF666666" />
+        <Setter Property="FontSize" Value="16" />
+        <Setter Property="Content" Value="×" />
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border
+                        x:Name="border"
+                        Background="{TemplateBinding Background}"
+                        CornerRadius="14">
+                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="border" Property="Background" Value="#14000000" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Storyboard x:Key="ExceptionToastSlideInStoryboard">
+        <DoubleAnimation
+            Storyboard.TargetProperty="(UIElement.RenderTransform).(TranslateTransform.X)"
+            From="420"
+            To="0"
+            Duration="0:0:0.35">
+            <DoubleAnimation.EasingFunction>
+                <CubicEase EasingMode="EaseOut" />
+            </DoubleAnimation.EasingFunction>
+        </DoubleAnimation>
+        <DoubleAnimation
+            Storyboard.TargetProperty="Opacity"
+            From="0"
+            To="1"
+            Duration="0:0:0.25" />
+    </Storyboard>
+
+    <Storyboard x:Key="ExceptionToastSlideOutStoryboard">
+        <DoubleAnimation
+            Storyboard.TargetProperty="(UIElement.RenderTransform).(TranslateTransform.X)"
+            To="420"
+            Duration="0:0:0.28">
+            <DoubleAnimation.EasingFunction>
+                <CubicEase EasingMode="EaseIn" />
+            </DoubleAnimation.EasingFunction>
+        </DoubleAnimation>
+        <DoubleAnimation
+            Storyboard.TargetProperty="Opacity"
+            To="0"
+            Duration="0:0:0.28" />
+    </Storyboard>
+
+</ResourceDictionary>

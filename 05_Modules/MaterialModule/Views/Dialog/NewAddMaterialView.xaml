@@ -1,0 +1,100 @@
+﻿<UserControl
+    x:Class="MaterialModule.Views.Dialog.NewAddMaterialView"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:c="clr-namespace:ProductionLineManage.Shared.Controls;assembly=ProductionLineManage.Shared"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:hc="https://handyorg.github.io/handycontrol"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    Width="500"
+    Height="380"
+    mc:Ignorable="d">
+
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="pack://application:,,,/ProductionLineManage.Shared;component/Assets/Styles/Dictionary1.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </UserControl.Resources>
+
+    <Grid Background="White">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="40" />
+            <RowDefinition />
+            <RowDefinition Height="50" />
+        </Grid.RowDefinitions>
+
+        <!--  1. 标题栏  -->
+        <c:TitleBarControl
+            FontIcon="&#xe6f3;"
+            ShowMaximizeButton="False"
+            ShowMinimizeButton="False"
+            TitleName="{Binding Title}" />
+
+        <!--  2. 主要内容  -->
+        <StackPanel Grid.Row="1" Margin="30">
+            <!--  型号  -->
+            <DockPanel Margin="0,15,30,0">
+                <TextBlock Margin="26,0,7,0" VerticalAlignment="Center">
+                    <Run Text="所属型号:" />
+                    <Run Foreground="Red" Text="*" />
+                </TextBlock>
+                <ComboBox
+                    DisplayMemberPath="Name"
+                    ItemsSource="{Binding Types}"
+                    SelectedIndex="{Binding TypeSelectIndex}"
+                    SelectedItem="{Binding TypeSelectItem}" />
+            </DockPanel>
+
+            <!--  物料编码  -->
+            <DockPanel Margin="0,15,30,0">
+                <TextBlock Margin="26,0,7,0" VerticalAlignment="Center">
+                    <Run Text="物料编码:" />
+                    <Run Foreground="Red" Text="*" />
+                </TextBlock>
+                <TextBox Text="{Binding Material.Code}" />
+            </DockPanel>
+
+            <!--  物料名称  -->
+            <DockPanel Margin="0,15,30,0">
+                <TextBlock Margin="26,0,7,0" VerticalAlignment="Center">
+                    <Run Text="物料名称:" />
+                    <Run Foreground="Red" Text="*" />
+                </TextBlock>
+                <TextBox Text="{Binding Material.Name}" />
+            </DockPanel>
+
+            <!--  备注  -->
+            <DockPanel Margin="0,15,30,0">
+                <TextBlock
+                    Margin="58,0,7,0"
+                    VerticalAlignment="Center"
+                    Text="备注:" />
+                <TextBox Text="{Binding Material.Remarks}" />
+            </DockPanel>
+        </StackPanel>
+
+        <!--  3. 按钮  -->
+        <Grid Grid.Row="2">
+            <Button
+                Width="70"
+                Height="35"
+                Margin="150,0,0,13"
+                Padding="8,3"
+                HorizontalAlignment="Left"
+                Command="{Binding AddCommand}"
+                Content="新增"
+                FontSize="13" />
+            <Button
+                Width="70"
+                Height="35"
+                Margin="0,0,150,13"
+                Padding="8,3"
+                HorizontalAlignment="Right"
+                Command="{Binding CancelCommand}"
+                Content="取消"
+                FontSize="13" />
+        </Grid>
+    </Grid>
+</UserControl>
