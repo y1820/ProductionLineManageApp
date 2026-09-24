@@ -265,12 +265,8 @@ namespace ProductionLineManage.Host
                 .SetBasePath(Directory.GetCurrentDirectory())
                 .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
                 .Build();
-            var activeLine = configuration["ActiveLine"] ?? string.Empty;//获取产线信息
+            var activeLine = configuration["ActiveLine"] ?? string.Empty;//获取协议包代号
             ILineProfile lineProfile = new Rld19145LineProfile();
-            if(!string.Equals(lineProfile.LineKey, activeLine, StringComparison.OrdinalIgnoreCase))
-            {
-
-            }
             containerRegistry.RegisterInstance<ILineProfile>(lineProfile);
             // 2. 注册 IConfiguration（使用 RegisterInstance）
             containerRegistry.RegisterInstance<IConfiguration>(configuration);
@@ -337,7 +333,15 @@ namespace ProductionLineManage.Host
         {
             base.OnInitialized();
             RegisterDeviceHandlers();
-            Container.Resolve<ILogger>().Info($"当前产线：{Container.Resolve<ILineProfile>().DisplayName}","LineProfile");
+            var logger = Container.Resolve<ILogger>();
+            var profile = Container.Resolve<ILineProfile>();
+            var activeLine = Container.Resolve<IConfiguration>()["ActiveLine"] ?? string.Empty;
+            logger.Info($"协议包：{profile.DisplayName} ({profile.LineKey}),配置ActiveLine = {activeLine}","LineProfile");
+            if (!string.Equals(profile.LineKey,activeLine,StringComparison.OrdinalIgnoreCase))
+            {
+                logger.Warning($"ActiveLine 与协议包不一致，扔按{profile.LineKey}运行。请检查 appsettings.json.","LineProfile");
+            }
+
         }
 
         #endregion
