@@ -7,6 +7,9 @@ using ProductionLineManage.Infrastructure.Logging;
 namespace ProductionLineManage.Services.DeviceManager.Connection
 {
     /// <summary>
+    /// 这里用的是本线指令码，枚举暂时留在 Core
+    /// 原因是门禁属于共享连接层，不能引用 Line 工程
+    /// 以后若多套数字不同的协议，再改成由配置/接口注入，而不是把枚举搬进 Line
     /// 流水码/物料码请求门控：在业务消费者之前配对「码」与「请求/信号」。
     /// PLC 先发 200/500 或扫码完成信号、码尚未就绪时暂存请求，码到达后再放行。
     /// </summary>
