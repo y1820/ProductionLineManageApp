@@ -1,5 +1,4 @@
-﻿using Microsoft.Identity.Client.Platforms.Features.WinFormsLegacyWebUi;
-using ProductionLineManage.Core.Constants;
+﻿using ProductionLineManage.Core.Constants;
 using ProductionLineManage.Core.Enums;
 using ProductionLineManage.Core.Models.DataBase;
 using ProductionLineManage.Core.Models.Device;
@@ -11,7 +10,7 @@ using ProductionLineManage.Core.Services.DeviceManager.InteractionType;
 using ProductionLineManage.Core.Services.MotorCode;
 using ProductionLineManage.Infrastructure.Logging;
 
-namespace ProductionLineManage.Services.DeviceManager.InteractionType
+namespace ProductionLineManage.Line.RLD19145.Interaction
 {
     /// <summary>
     /// 指令类型交互逻辑：处理业务中介转发的 PLC 请求码消息。
@@ -933,7 +932,7 @@ namespace ProductionLineManage.Services.DeviceManager.InteractionType
             var flowCode = _deviceStatusManager.GetStatus(_context.StationId)?.CurrentFlowCode;
             if (string.IsNullOrWhiteSpace(flowCode) || flowCode == "--")
                 return string.Empty;
-            return flowCode.Trim();
+            return flowCode?.Trim()?? "" ;
         }
 
         /// <summary>优先 Status，空则主动读 PLC 并回写 Status</summary>
@@ -965,7 +964,7 @@ namespace ProductionLineManage.Services.DeviceManager.InteractionType
 
         /// <summary>规范化流水码：空值或占位符返回空字符串</summary>
         private static string NormalizeFlowCode(string? value) =>
-            string.IsNullOrWhiteSpace(value) || value == "--" ? string.Empty : value.Trim();
+            string.IsNullOrWhiteSpace(value) || value == "--" ? string.Empty : value?.Trim() ?? "";
 
         /// <summary>刷新型号上下文：软件下发从缓存取；PLC 决定则依赖采集结果</summary>
         private void RefreshProductTypeContext()
@@ -1218,4 +1217,5 @@ namespace ProductionLineManage.Services.DeviceManager.InteractionType
 
         #endregion
     }
+
 }

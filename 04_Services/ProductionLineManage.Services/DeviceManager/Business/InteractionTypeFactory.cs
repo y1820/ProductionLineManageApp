@@ -4,13 +4,12 @@ using ProductionLineManage.Core.Services.DeviceManager;
 using ProductionLineManage.Core.Services.DeviceManager.Business;
 using ProductionLineManage.Core.Services.DeviceManager.Connection;
 using ProductionLineManage.Core.Services.DeviceManager.InteractionType;
-using ProductionLineManage.Core.Services.MotorCode;
 using ProductionLineManage.Services.DeviceManager.InteractionType;
 
 namespace ProductionLineManage.Services.DeviceManager.Business
 {
     /// <summary>
-    /// 交互类型工厂：根据 device_ConnectInfo.LogicType 创建 SignalLineLogic / CommandLineLogic。
+    /// 交互类型工厂：Signal 在本工厂创建，Command 交给 ICommandInteractionFactory
     /// 在 DeviceConnectionTask.StartAsync 采集线程启动前调用，注入 Mediator 全局 Handler 字典。
     /// </summary>
     public class InteractionTypeFactory : IInteractionTypeFactory
@@ -28,18 +27,8 @@ namespace ProductionLineManage.Services.DeviceManager.Business
 
         /// <summary> 物料校验 </summary>
         private readonly IMaterialService _materialService;
-
-        /// <summary> 流水码校验 </summary>
-        private readonly IFlowCodeService _flowCodeService;
-
-        /// <summary> 返修逻辑 </summary>
-        private readonly IRepairService _repairService;
-
-        /// <summary> 电机码下发 </summary>
-        private readonly IMotorCodeDispatchService _motorCodeDispatch;
-
-        /// <summary> 工位间传值 </summary>
-        private readonly IStationDataTransferService _stationDataTransfer;
+        /// <summary> 指令交互类型工厂 </summary>
+        private readonly ICommandInteractionFactory _commandInteraction;
 
         #endregion
 
@@ -51,19 +40,13 @@ namespace ProductionLineManage.Services.DeviceManager.Business
             IDeviceStatusManager statusManager,
             IDataCacheService cacheService,
             IMaterialService materialService,
-            IFlowCodeService flowCodeService,
-            IRepairService repairService,
-            IMotorCodeDispatchService motorCodeDispatch,
-            IStationDataTransferService stationDataTransfer)
+            ICommandInteractionFactory commandInteraction)
         {
             _mediator = mediator;
             _statusManager = statusManager;
             _cacheService = cacheService;
             _materialService = materialService;
-            _flowCodeService = flowCodeService;
-            _repairService = repairService;
-            _motorCodeDispatch = motorCodeDispatch;
-            _stationDataTransfer = stationDataTransfer;
+            _commandInteraction = commandInteraction;
         }
 
         #endregion
@@ -78,7 +61,7 @@ namespace ProductionLineManage.Services.DeviceManager.Business
             return logicType switch
             {
                 InteractionTypeConstants.Signal => new SignalLineLogic(context, _statusManager, handlers, _cacheService, _materialService),
-                _ => new CommandLineLogic(context, _statusManager, handlers, _cacheService, _materialService, _flowCodeService, _repairService, _motorCodeDispatch, _stationDataTransfer), // 非 Signal 均走指令线
+                _ => _commandInteraction.Create(context)// 非 Signal 均走指令线
             };
         }
 

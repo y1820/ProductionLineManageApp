@@ -1,13 +1,13 @@
 ﻿using ProductionLineManage.Core.Constants;
 using ProductionLineManage.Core.Services.DeviceManager.Connection;
 
-namespace ProductionLineManage.Services.DeviceManager.InteractionType
+namespace ProductionLineManage.Core.Helpers
 {
     /// <summary>
     /// 8000 保存时的产品工位状态解析：1=合格，2=不合格。
     /// 优先读地址映射「产品状态」，否则回退工件判定合格/不合格；均未配置或为假时默认合格。
     /// </summary>
-    internal static class SaveStatusHelper
+    public static class SaveStatusHelper
     {
         #region ===================== 对外入口 =====================
 
@@ -73,7 +73,7 @@ namespace ProductionLineManage.Services.DeviceManager.InteractionType
                 };
             }
 
-            var text = value.ToString()?.Trim();
+            var text = value.ToString()?.Trim() ?? "";
             if (string.IsNullOrEmpty(text))
                 return null;
 

@@ -266,10 +266,6 @@ namespace ProductionLineManage.Host
                 .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
                 .Build();
 
-            var activeLine = configuration["ActiveLine"] ?? string.Empty;
-            ILineProfile lineProfile = LineProfileFactory.Create(activeLine);
-            containerRegistry.RegisterInstance<ILineProfile>(lineProfile);
-
             // 2. 注册 IConfiguration（使用 RegisterInstance）
             containerRegistry.RegisterInstance<IConfiguration>(configuration);
             // 注册 SQLHelper（单例，整个应用共享一个数据库连接）
@@ -278,6 +274,13 @@ namespace ProductionLineManage.Host
             containerRegistry.Register(typeof(IRepository<>), typeof(Repository<>));
 
             #endregion
+
+            //注册产线协议
+            var activeLine = configuration["ActiveLine"] ?? string.Empty;
+            ILineProfile lineProfile = LineProfileFactory.Create(activeLine);
+            containerRegistry.RegisterInstance<ILineProfile>(lineProfile);
+            //注册指令交互类型工厂
+            containerRegistry.RegisterSingleton<ICommandInteractionFactory, Rld19145CommandInteractionFactory>();
 
             // 注册日志服务（单例）
             containerRegistry.RegisterSingleton<ILogger, FileLogger>();
@@ -294,10 +297,6 @@ namespace ProductionLineManage.Host
             containerRegistry.RegisterSingleton<IDeviceManagementService, DeviceManagementService>();
             containerRegistry.RegisterSingleton<IDeviceLogService, DeviceLogService>();
             containerRegistry.RegisterSingleton<ISharedDriverPool, SharedDriverPool>();
-
-            //工位交互类型注册
-            //containerRegistry.RegisterSingleton<IInteractionType, CommandLineLogic>();//指令类型
-            //containerRegistry.RegisterSingleton<IInteractionType, SignalLineLogic>();//信号类型
 
             // ========== 业务服务（Scoped - 每个工位独立）or Singleton==========
             containerRegistry.RegisterSingleton<IFlowCodeService, FlowCodeService>();//流水码验证
