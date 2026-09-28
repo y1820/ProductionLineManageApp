@@ -1,0 +1,9 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <RootNamespace>ProductionLineManage.Line.RLD19145</RootNamespace>
+    <AssemblyName>ProductionLineManage.Line.RLD19145</AssemblyName>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\03_Core\ProductionLineManage.Core\ProductionLineManage.Core.csproj" />
+  </ItemGroup>
+</Project>

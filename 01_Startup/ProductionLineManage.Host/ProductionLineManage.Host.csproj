@@ -20,6 +20,7 @@
     <ProjectReference Include="..\..\02_Infrastructure\ProductionLineManage.Infrastructure\ProductionLineManage.Infrastructure.csproj" />
     <ProjectReference Include="..\..\02_Infrastructure\ProductionLineManage.Shared\ProductionLineManage.Shared.csproj" />
     <ProjectReference Include="..\..\03_Core\ProductionLineManage.Core\ProductionLineManage.Core.csproj" />
+    <ProjectReference Include="..\..\04_Services\Lines\ProductionLineManage.Line.RLD19145\ProductionLineManage.Line.RLD19145.csproj" />
     <ProjectReference Include="..\..\04_Services\ProductionLineManage.Services\ProductionLineManage.Services.csproj" />
     <ProjectReference Include="..\..\05_Modules\DeviceModule\DeviceModule.csproj" />
     <ProjectReference Include="..\..\05_Modules\MaterialModule\MaterialModule.csproj" />

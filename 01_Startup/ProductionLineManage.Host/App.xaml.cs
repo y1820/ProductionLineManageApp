@@ -265,17 +265,18 @@ namespace ProductionLineManage.Host
                 .SetBasePath(Directory.GetCurrentDirectory())
                 .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
                 .Build();
-            var activeLine = configuration["ActiveLine"] ?? string.Empty;//获取协议包代号
-            ILineProfile lineProfile = new Rld19145LineProfile();
+
+            var activeLine = configuration["ActiveLine"] ?? string.Empty;
+            ILineProfile lineProfile = LineProfileFactory.Create(activeLine);
             containerRegistry.RegisterInstance<ILineProfile>(lineProfile);
+
             // 2. 注册 IConfiguration（使用 RegisterInstance）
             containerRegistry.RegisterInstance<IConfiguration>(configuration);
             // 注册 SQLHelper（单例，整个应用共享一个数据库连接）
             containerRegistry.RegisterSingleton<SQLHelper>();
             // 注册通用仓储（泛型注册）
             containerRegistry.Register(typeof(IRepository<>), typeof(Repository<>));
-            // 如果你需要为特定 Model 扩展特殊方法，可以单独注册
-            // containerRegistry.Register<IMaterialService, MaterialService>();
+
             #endregion
 
             // 注册日志服务（单例）
@@ -333,13 +334,14 @@ namespace ProductionLineManage.Host
         {
             base.OnInitialized();
             RegisterDeviceHandlers();
+
             var logger = Container.Resolve<ILogger>();
             var profile = Container.Resolve<ILineProfile>();
             var activeLine = Container.Resolve<IConfiguration>()["ActiveLine"] ?? string.Empty;
             logger.Info($"协议包：{profile.DisplayName} ({profile.LineKey}),配置ActiveLine = {activeLine}","LineProfile");
             if (!string.Equals(profile.LineKey,activeLine,StringComparison.OrdinalIgnoreCase))
             {
-                logger.Warning($"ActiveLine 与协议包不一致，扔按{profile.LineKey}运行。请检查 appsettings.json.","LineProfile");
+                logger.Warning($"ActiveLine 与协议包不一致，仍按{profile.LineKey}运行。请检查 appsettings.json.","LineProfile");
             }
 
         }
