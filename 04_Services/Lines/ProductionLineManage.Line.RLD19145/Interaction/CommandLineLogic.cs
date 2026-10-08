@@ -39,7 +39,12 @@ namespace ProductionLineManage.Line.RLD19145.Interaction
         /// <summary>交互类型标识：Command</summary>
         public string LogicType => InteractionTypeConstants.Command;
 
-        /// <summary>注入工位上下文、状态管理器及业务服务</summary>
+        /// <summary>
+        /// 注入工位上下文、状态管理器及业务服务
+        /// 底座：_context / _deviceStatusManager / _cacheService
+        /// 字典：_handlers（200/500/8000/返修确认）
+        /// 漏出的直接调用：物料清单、返修规则、返修查询、900、工位传值
+        /// </summary>
         public CommandLineLogic(
             IDeviceTaskContext context,
             IDeviceStatusManager statusManager,
@@ -85,7 +90,12 @@ namespace ProductionLineManage.Line.RLD19145.Interaction
                         break;
 
                     case DataNameConstants.CurrentFlowCode:
-                        CurrentFlowCodeAsync(value?.ToString() ?? ""); // 同步当前流水码到 DeviceStatus
+                        if(value is string)
+                        {
+                            string flowCode = (value as string)?.Replace("\0", "") ?? "";
+                            flowCode = flowCode.Trim();
+                            CurrentFlowCodeAsync(flowCode); // 同步当前流水码到 DeviceStatus
+                        }
                         break;
 
                     case DataNameConstants.TodayCount:
@@ -467,6 +477,10 @@ namespace ProductionLineManage.Line.RLD19145.Interaction
                 LineId = _workState.LineId,
                 TrayCode = _workState.TrayCode,
             };
+
+            //本方法不查流水码是否合法
+            //用键 "FlowCode" 找已注册的 Handler
+            //真正校验在 FlowCodeService.HandleAsync
             var response = await InvokeHandlerAsync(DeviceHandlerKeys.FlowCode, flowPayload);
             if (response == null)
             {
@@ -683,6 +697,7 @@ namespace ProductionLineManage.Line.RLD19145.Interaction
                 RulesOnly = rulesOnly
             };
 
+            // 本方法不判物料规则；键是 "Material"；真正校验在 MaterialService.HandleAsync。
             var response = await InvokeHandlerAsync(DeviceHandlerKeys.Material, payload);
             if (response == null)
             {
@@ -782,6 +797,9 @@ namespace ProductionLineManage.Line.RLD19145.Interaction
                 RepairCount = _workState.RepairCount
             };
 
+            // 键是 "DataSave"，和 DataSaveService.DataType 相同。
+            //真正写库在 DataSaveService.HandleAsync。
+            //本方法只做：检查物料是否齐、ReadSaveStatusAsync 读合格/不合格、组 SaveDataPayload、看成功后结束周期。
             var response = await InvokeHandlerAsync(DeviceHandlerKeys.DataSave, payload);
             if (response?.Success == true)
             {
@@ -1089,7 +1107,7 @@ namespace ProductionLineManage.Line.RLD19145.Interaction
             {
                 StationId = _context.StationId,
                 DataType = handlerKey,
-                Data = payload
+                Data = payload 
             };
 
             var response = await handler.HandleAsync(message, _context);
