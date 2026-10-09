@@ -25,7 +25,6 @@ namespace ProductionLineManage.Line.RLD19145.Interaction
         private readonly IReadOnlyDictionary<string, IDeviceDataHandler> _handlers;
         private readonly IDataCacheService _cacheService;
         private readonly IMotorCodeDispatchService _motorCodeDispatch;
-        private readonly IStationDataTransferService _stationDataTransfer;
 
         /// <summary>本实例私有的交互编排状态，不交给 Mediator 管理</summary>
         private readonly StationWorkState _workState;
@@ -40,22 +39,20 @@ namespace ProductionLineManage.Line.RLD19145.Interaction
         /// 注入工位上下文、状态管理器及业务服务
         /// 底座：_context / _deviceStatusManager / _cacheService
         /// 字典：_handlers（200/500/8000/返修确认）
-        /// 漏出的直接调用：物料清单、返修规则、返修查询、900、工位传值
+        /// 漏出的直接调用：900
         /// </summary>
         public CommandLineLogic(
             IDeviceTaskContext context,
             IDeviceStatusManager statusManager,
             IReadOnlyDictionary<string, IDeviceDataHandler> handlers,
             IDataCacheService cacheService,
-            IMotorCodeDispatchService motorCodeDispatch,
-            IStationDataTransferService stationDataTransfer)
+            IMotorCodeDispatchService motorCodeDispatch)
         {
             _context = context;
             _deviceStatusManager = statusManager;
             _handlers = handlers;
             _cacheService = cacheService;
             _motorCodeDispatch = motorCodeDispatch;
-            _stationDataTransfer = stationDataTransfer;
             _workState = new StationWorkState { StationId = context.StationId, LineId = context.StationInfo.LineId };
         }
 
@@ -1160,51 +1157,16 @@ namespace ProductionLineManage.Line.RLD19145.Interaction
         /// <summary>200 流水码验证通过后：按 craft_StationDataTransfer 配置写入历史传值</summary>
         private async Task ApplyStationDataTransferAsync(string flowCode)
         {
-            var items = await _stationDataTransfer.GetTransferWritesAsync(
-                _context.StationId,
-                _workState.ProductTypeId,
-                _workState.LineId,
-                flowCode);
-            if (items.Count == 0)
-                return;
-            _context.Log($"<工位传值> 开始写入 PLC，共 {items.Count} 项，流水码={flowCode}");
-            foreach (var item in items)
-            {
-                var value = ConvertTransferValue(item.DataValue, item.DataType);
-                var ok = await _context.WriteAsync(item.TargetAddress, item.DataType, value, item.DataLength);
-                if (ok)
-                {
-                    _context.Log(
-                        $"<工位传值> 成功：{item.RequestDataName}={item.DataValue}，源工位Id={item.SourceStationId} → {item.TargetAddress} ({item.DataType})");
-                }
-                else
-                {
-                    _context.Log(
-                        $"<工位传值> 写入失败：{item.RequestDataName} → {item.TargetAddress} ({item.DataType})",
-                        LogLevel.Warning);
-                }
-            }
-            _context.Log("<工位传值> 完成");
-        }
-
-        /// <summary>将历史表字符串按 PLC 数据类型转换为写入值</summary>
-        private static object ConvertTransferValue(string dataValue, string dataType)
-        {
-            if (string.IsNullOrWhiteSpace(dataType))
-                return dataValue;
-            return dataType.Trim() switch
-            {
-                "Bool" or "bool" or "Boolean" =>
-                    bool.TryParse(dataValue, out var b) ? b
-                    : dataValue is "1" or "OK" or "ok",
-                "Int" or "int" or "Int16" or "Int32" or "Word" =>
-                    int.TryParse(dataValue, System.Globalization.NumberStyles.Any,
-                        System.Globalization.CultureInfo.InvariantCulture, out var i) ? i : 0,
-                "Real" or "Float" or "Double" or "float" or "double" =>
-                    double.TryParse(dataValue, System.Globalization.NumberStyles.Any,
-                        System.Globalization.CultureInfo.InvariantCulture, out var d) ? d : 0.0,
-                _ => dataValue
+            var payload = new StationTransferPayload() //创建消息
+            { 
+                FlowCode = flowCode,
+                LineId = _workState.LineId,
+                ProductTypeId = _workState.ProductTypeId,
             };
+            var response = await InvokeHandlerAsync(DeviceHandlerKeys.StationDataTransfer, payload);//调用业务处理器处理工位传值业务
+            if (response == null)
+                _context.Log("<工位传值> Handler 未响应", LogLevel.Warning);
+
         }
 
         #endregion

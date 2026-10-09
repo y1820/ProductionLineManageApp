@@ -13,19 +13,16 @@ namespace ProductionLineManage.Host
         private readonly IDeviceStatusManager _statusManager;
         private readonly IDataCacheService _cacheService;
         private readonly IMotorCodeDispatchService _motorCodeDispatch;
-        private readonly IStationDataTransferService _stationDataTransfer;
         private readonly IDeviceBusinessMediator _mediator;
         public Rld19145CommandInteractionFactory(
             IDeviceStatusManager statusManage,
             IDataCacheService cacheService,
             IMotorCodeDispatchService motorCodeDispatch,
-            IStationDataTransferService stationDataTransfer,
             IDeviceBusinessMediator mediator)
         {
             _statusManager = statusManage;
             _cacheService = cacheService;
             _motorCodeDispatch = motorCodeDispatch;
-            _stationDataTransfer = stationDataTransfer;
             _mediator = mediator;
         }
 
@@ -37,8 +34,7 @@ namespace ProductionLineManage.Host
                 _statusManager,
                 handlers,
                 _cacheService,
-                _motorCodeDispatch,
-                _stationDataTransfer);
+                _motorCodeDispatch);
         }
     }
 }

@@ -1,4 +1,5 @@
-﻿using ProductionLineManage.Core.Constants;
+﻿using Prism.Events;
+using ProductionLineManage.Core.Constants;
 using ProductionLineManage.Core.Events;
 using ProductionLineManage.Core.Models.DataBase;
 using ProductionLineManage.Core.Models.Device;
@@ -8,7 +9,7 @@ using ProductionLineManage.Core.Services.DeviceManager.Business;
 using ProductionLineManage.Core.Services.DeviceManager.Connection;
 using ProductionLineManage.Core.Services.RepositoryGrop;
 using ProductionLineManage.Infrastructure.Logging;
-using Prism.Events;
+using System.Runtime.Remoting.Contexts;
 
 namespace ProductionLineManage.Services.DeviceManager.Business.BusinessLogic
 {
@@ -75,17 +76,41 @@ namespace ProductionLineManage.Services.DeviceManager.Business.BusinessLogic
             }
 
             context.Log($"<工位传值> Handler 开始，流水码={payload.FlowCode}，型号Id={payload.ProductTypeId}，产线Id={payload.LineId}");
-
+            //获取工位传值配置和获取需要传值的数据
             var items = await GetTransferWritesAsync(
                 stationId, payload.ProductTypeId, payload.LineId, payload.FlowCode);
 
-            var hasData = items.Count > 0;
+            if (items == null || items.Count == 0)
+                return new BusinessResponse()
+                {
+                    StationId = stationId,
+                    Success = true,
+                    Message = "无传值配置或历史数据",
+                };
+            context.Log($"<工位传值> 开始写入 PLC，共 {items.Count} 项，流水码={payload.FlowCode}");
+            foreach (var item in items)
+            {
+                var value = ConvertTransferValue(item.DataValue, item.DataType);
+                var ok = await context.WriteAsync(item.TargetAddress, item.DataType, value, item.DataLength);
+                if (ok)
+                {
+                    context.Log(
+                        $"<工位传值> 成功：{item.RequestDataName}={item.DataValue}，源工位Id={item.SourceStationId} → {item.TargetAddress} ({item.DataType})");
+                }
+                else
+                {
+                    context.Log(
+                        $"<工位传值> 写入失败：{item.RequestDataName} → {item.TargetAddress} ({item.DataType})",
+                        LogLevel.Warning);
+                }
+            }
+            context.Log("<工位传值> 完成");
+
             return new BusinessResponse
             {
                 StationId = stationId,
-                Success = hasData,
-                Message = hasData ? "工位传值数据已获取" : "无传值配置或历史数据",
-                Data = items
+                Success = true,
+                Message = "工位传值已完成",
             };
         }
 
@@ -180,6 +205,27 @@ ORDER BY Id DESC";
             _transferConfigs = (list ?? new()).AsReadOnly();
         }
 
+
+
+        /// <summary>将历史表字符串按 PLC 数据类型转换为写入值</summary>
+        private static object ConvertTransferValue(string dataValue, string dataType)
+        {
+            if (string.IsNullOrWhiteSpace(dataType))
+                return dataValue;
+            return dataType.Trim() switch
+            {
+                "Bool" or "bool" or "Boolean" =>
+                    bool.TryParse(dataValue, out var b) ? b
+                    : dataValue is "1" or "OK" or "ok",
+                "Int" or "int" or "Int16" or "Int32" or "Word" =>
+                    int.TryParse(dataValue, System.Globalization.NumberStyles.Any,
+                        System.Globalization.CultureInfo.InvariantCulture, out var i) ? i : 0,
+                "Real" or "Float" or "Double" or "float" or "double" =>
+                    double.TryParse(dataValue, System.Globalization.NumberStyles.Any,
+                        System.Globalization.CultureInfo.InvariantCulture, out var d) ? d : 0.0,
+                _ => dataValue
+            };
+        }
         #endregion
     }
 }
