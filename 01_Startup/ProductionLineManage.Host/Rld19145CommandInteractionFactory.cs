@@ -46,7 +46,6 @@ namespace ProductionLineManage.Host
                 _statusManager,
                 handlers,
                 _cacheService,
-                _materialService,
                 _flowCodeService,
                 _repairService,
                 _motorCodeDispatch,

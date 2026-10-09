@@ -323,14 +323,14 @@ namespace ProductionLineManage.Services.DeviceManager.Business.BusinessLogic
 
             if (rules == null || rules.Count == 0)
             {
-                _logger.DeviceLog(stationId, "P", "<ValidateCodeRules> 没有编码规则，直接通过");
+                _logger.DeviceLog(stationId, "返修", "<ValidateCodeRules> 没有编码规则，直接通过");
                 return true;
             }
 
             var (isValid, ruleMessage) = _ruleValidation.ValidateRules(rules, flowCode);
 
             if (!isValid)
-                _logger.DeviceLog(stationId, "P", $"<ValidateCodeRules> 编码规则验证不通过：{ruleMessage}");
+                _logger.DeviceLog(stationId, "返修", $"<ValidateCodeRules> 编码规则验证不通过：{ruleMessage}");
 
             return isValid;
         }

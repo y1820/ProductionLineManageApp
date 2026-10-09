@@ -24,7 +24,6 @@ namespace ProductionLineManage.Line.RLD19145.Interaction
         private readonly IDeviceStatusManager _deviceStatusManager;
         private readonly IReadOnlyDictionary<string, IDeviceDataHandler> _handlers;
         private readonly IDataCacheService _cacheService;
-        private readonly IMaterialService _materialService;
         private readonly IFlowCodeService _flowCodeService;
         private readonly IRepairService _repairService;
         private readonly IMotorCodeDispatchService _motorCodeDispatch;
@@ -50,7 +49,6 @@ namespace ProductionLineManage.Line.RLD19145.Interaction
             IDeviceStatusManager statusManager,
             IReadOnlyDictionary<string, IDeviceDataHandler> handlers,
             IDataCacheService cacheService,
-            IMaterialService materialService,
             IFlowCodeService flowCodeService,
             IRepairService repairService,
             IMotorCodeDispatchService motorCodeDispatch,
@@ -60,7 +58,6 @@ namespace ProductionLineManage.Line.RLD19145.Interaction
             _deviceStatusManager = statusManager;
             _handlers = handlers;
             _cacheService = cacheService;
-            _materialService = materialService;
             _flowCodeService = flowCodeService;
             _repairService = repairService;
             _motorCodeDispatch = motorCodeDispatch;
@@ -766,7 +763,7 @@ namespace ProductionLineManage.Line.RLD19145.Interaction
                 return (int)SCADAResponseCode.DatabaseError;
             }
 
-            var (materialReady, materialReason) = await TryEnsureMaterialsReadyForSaveAsync();
+            var (materialReady, materialReason) = TryEnsureMaterialsReadyForSave();
             if (!materialReady) // 工位物料未全部验证
             {
                 _context.Log($"<保存数据> 失败：{materialReason}", LogLevel.Warning);
@@ -1212,11 +1209,16 @@ namespace ProductionLineManage.Line.RLD19145.Interaction
         }
 
         /// <summary>校验工位所需物料是否均已通过 500 验证</summary>
-        private async Task<(bool ok, string reason)> TryEnsureMaterialsReadyForSaveAsync()
+        private (bool ok, string reason) TryEnsureMaterialsReadyForSave()
         {
-            var required = await _materialService.GetStationMaterialsAsync(
-                _context.StationId, _workState.ProductTypeId, _workState.LineId);
-            if (required.Count == 0)
+            if (!_cacheService.HasData<List<material_Station>>())
+                return (true, string.Empty);
+
+            var required = _cacheService.GetData<List<material_Station>>()
+             .Where(r => r.StationId == _context.StationId
+                 && r.TypeId == _workState.ProductTypeId
+                 && r.LineId == _workState.LineId);
+            if (!required.Any())
                 return (true, string.Empty);
 
             var validatedIds = _workState.ValidatedMaterials.Select(v => v.MaterialId).ToHashSet();
