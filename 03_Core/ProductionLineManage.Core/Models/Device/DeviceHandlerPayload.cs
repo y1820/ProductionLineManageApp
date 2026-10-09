@@ -154,6 +154,29 @@ namespace ProductionLineManage.Core.Models.Device
 
     #endregion
 
+    #region ===================== 可返修工位查询 =====================
+    /// <summary> 查询可返修的工位消息 </summary>
+    public class RepairQueryPayload
+    {
+        /// <summary> 流水码 </summary>
+        public string FlowCode { get; set; } = string.Empty;
+
+        /// <summary> 产品型号 Id </summary>
+        public int ProductTypeId { get; set; }
+
+        /// <summary> 产线 Id </summary>
+        public int LineId { get; set; }
+    }
+
+    /// <summary> 查询可返修的工位消息返回结果 </summary>
+    public sealed class RepairQueryResult
+    {
+        public int AllowSequence {  get; set; }
+        public int RepairCount { get; set; }
+    }
+
+    #endregion
+
     #region ===================== 保存数据 =====================
 
     /// <summary> 保存数据 Handler 入参（工艺数据由 DataSaveService 按 Mediator 采集配置从 PLC 读取） </summary>

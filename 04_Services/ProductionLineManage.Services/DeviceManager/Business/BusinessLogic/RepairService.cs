@@ -64,6 +64,25 @@ namespace ProductionLineManage.Services.DeviceManager.Business.BusinessLogic
         {
             var stationId = message.StationId;
 
+            if (message.Data is RepairQueryPayload querPayload)//如果是查询可返修工位业务
+            {
+               var (success, allowSequence, repairCount, Message) = await QueryAllowRepairSequenceAsync(
+                    querPayload.FlowCode, 
+                    querPayload.ProductTypeId,
+                    querPayload.LineId);
+                return new BusinessResponse()
+                {
+                    Success = success,
+                    Data = new RepairQueryResult()
+                    {
+                        AllowSequence = allowSequence,
+                        RepairCount = repairCount,
+                    },
+                    Message = Message,
+                    StationId = message.StationId
+                };
+            }
+
             if (message.Data is not RepairConfirmPayload payload)
             {
                 context.Log("<HandleAsync> 失败：缺少 RepairConfirmPayload", LogLevel.Warning);

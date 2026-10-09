@@ -1,5 +1,4 @@
-﻿using Azure;
-using ProductionLineManage.Core.Constants;
+﻿using ProductionLineManage.Core.Constants;
 using ProductionLineManage.Core.Enums;
 using ProductionLineManage.Core.Models.DataBase;
 using ProductionLineManage.Core.Models.Device;
@@ -25,7 +24,6 @@ namespace ProductionLineManage.Line.RLD19145.Interaction
         private readonly IDeviceStatusManager _deviceStatusManager;
         private readonly IReadOnlyDictionary<string, IDeviceDataHandler> _handlers;
         private readonly IDataCacheService _cacheService;
-        private readonly IRepairService _repairService;
         private readonly IMotorCodeDispatchService _motorCodeDispatch;
         private readonly IStationDataTransferService _stationDataTransfer;
 
@@ -49,7 +47,6 @@ namespace ProductionLineManage.Line.RLD19145.Interaction
             IDeviceStatusManager statusManager,
             IReadOnlyDictionary<string, IDeviceDataHandler> handlers,
             IDataCacheService cacheService,
-            IRepairService repairService,
             IMotorCodeDispatchService motorCodeDispatch,
             IStationDataTransferService stationDataTransfer)
         {
@@ -57,7 +54,6 @@ namespace ProductionLineManage.Line.RLD19145.Interaction
             _deviceStatusManager = statusManager;
             _handlers = handlers;
             _cacheService = cacheService;
-            _repairService = repairService;
             _motorCodeDispatch = motorCodeDispatch;
             _stationDataTransfer = stationDataTransfer;
             _workState = new StationWorkState { StationId = context.StationId, LineId = context.StationInfo.LineId };
@@ -541,13 +537,26 @@ namespace ProductionLineManage.Line.RLD19145.Interaction
                 return ((int)SCADAResponseCode.FlowCodeInvalid, null);
             }
 
-            var (queryOk, allowSequence, repairCount, queryMessage) =
-                await _repairService.QueryAllowRepairSequenceAsync(
-                    flowCode, _workState.ProductTypeId, _workState.LineId);
-
-            if (!queryOk) // 过站历史查询失败
+            var repairQueryResponse = new RepairQueryPayload()
             {
-                _context.Log($"<返修流水码验证> 失败：{queryMessage}", LogLevel.Warning);
+                FlowCode = flowCode,
+                LineId = _workState.LineId,
+                ProductTypeId = _workState.ProductTypeId,
+            };
+            var queryResponse = await InvokeHandlerAsync(DeviceHandlerKeys.Repair, repairQueryResponse);
+            if (queryResponse == null)
+            {
+                _context.Log($"<返修流水码验证> 失败：Handler 未响应可返修工位查询", LogLevel.Warning);
+                return ((int)SCADAResponseCode.FlowCodeInvalid, null);
+            }
+            if (!queryResponse.Success)
+            {
+                _context.Log($"<返修流水码验证> 失败：{queryResponse.Message}", LogLevel.Warning);
+                return ((int)SCADAResponseCode.FlowCodeInvalid, null);
+            }
+            if (queryResponse.Data is not RepairQueryResult queryResult)
+            {
+                _context.Log($"<返修流水码验证> 失败：返回的消息类型不一致{queryResponse.Data}", LogLevel.Warning);
                 return ((int)SCADAResponseCode.FlowCodeInvalid, null);
             }
 
@@ -557,15 +566,15 @@ namespace ProductionLineManage.Line.RLD19145.Interaction
                 return ((int)SCADAResponseCode.FlowCodeInvalid, null);
             }
 
-            await WriteAllowRepairSequenceAsync(allowSequence); // 写入允许返修顺序到 PLC
+            await WriteAllowRepairSequenceAsync(queryResult.AllowSequence); // 写入允许返修顺序到 PLC
 
             _workState.IsFlowCodeQualified = true;
             _workState.IsRepairMode = true;
             _workState.StationRecordId = 0;
-            _workState.AllowRepairSequence = allowSequence;
-            _workState.RepairCount = repairCount;
+            _workState.AllowRepairSequence = queryResult.AllowSequence;
+            _workState.RepairCount = queryResult.RepairCount;
 
-            _context.Log($"<返修流水码验证> 完成，AllowSeq={allowSequence}，RepairCount={repairCount}，IsFlowCodeQualified=true");
+            _context.Log($"<返修流水码验证> 完成，AllowSeq={queryResult.AllowSequence}，RepairCount={queryResult.RepairCount}，IsFlowCodeQualified=true");
             return ((int)SCADAResponseCode.FlowCodeValid, null);
         }
 
