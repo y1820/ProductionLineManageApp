@@ -9,6 +9,7 @@ using ProductionLineManage.Core.Services.RepositoryGrop;
 using ProductionLineManage.Infrastructure.Data.Repository;
 using ProductionLineManage.Infrastructure.Logging;
 using ProductionLineManage.Services.Production;
+using System.Windows.Interop;
 
 namespace ProductionLineManage.Services.DeviceManager.Business.BusinessLogic
 {
@@ -98,6 +99,17 @@ namespace ProductionLineManage.Services.DeviceManager.Business.BusinessLogic
                     StationId = stationId,
                     Success = false,
                     Message = msg
+                };
+            }
+
+            if (payload.Mode == FlowCodeVerifyMode.RulesOnly)//只校验规则，返修使用
+            {
+                var result = await ValidateFlowCodeRulesOnlyAsync(flowCode, stationId, productTypeId, lineId);
+                return new BusinessResponse()
+                {
+                    StationId = stationId,
+                    Success = result,
+                    Message = $"<HandleAsync> 验证{(result ? "成功" : "失败")}",
                 };
             }
 

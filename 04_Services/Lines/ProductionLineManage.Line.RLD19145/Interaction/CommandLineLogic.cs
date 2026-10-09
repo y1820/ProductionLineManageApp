@@ -1,4 +1,5 @@
-﻿using ProductionLineManage.Core.Constants;
+﻿using Azure;
+using ProductionLineManage.Core.Constants;
 using ProductionLineManage.Core.Enums;
 using ProductionLineManage.Core.Models.DataBase;
 using ProductionLineManage.Core.Models.Device;
@@ -24,7 +25,6 @@ namespace ProductionLineManage.Line.RLD19145.Interaction
         private readonly IDeviceStatusManager _deviceStatusManager;
         private readonly IReadOnlyDictionary<string, IDeviceDataHandler> _handlers;
         private readonly IDataCacheService _cacheService;
-        private readonly IFlowCodeService _flowCodeService;
         private readonly IRepairService _repairService;
         private readonly IMotorCodeDispatchService _motorCodeDispatch;
         private readonly IStationDataTransferService _stationDataTransfer;
@@ -49,7 +49,6 @@ namespace ProductionLineManage.Line.RLD19145.Interaction
             IDeviceStatusManager statusManager,
             IReadOnlyDictionary<string, IDeviceDataHandler> handlers,
             IDataCacheService cacheService,
-            IFlowCodeService flowCodeService,
             IRepairService repairService,
             IMotorCodeDispatchService motorCodeDispatch,
             IStationDataTransferService stationDataTransfer)
@@ -58,7 +57,6 @@ namespace ProductionLineManage.Line.RLD19145.Interaction
             _deviceStatusManager = statusManager;
             _handlers = handlers;
             _cacheService = cacheService;
-            _flowCodeService = flowCodeService;
             _repairService = repairService;
             _motorCodeDispatch = motorCodeDispatch;
             _stationDataTransfer = stationDataTransfer;
@@ -522,9 +520,22 @@ namespace ProductionLineManage.Line.RLD19145.Interaction
                 return ((int)SCADAResponseCode.FlowCodeInvalid, null);
             }
 
-            var rulesOk = await _flowCodeService.ValidateFlowCodeRulesOnlyAsync(
-                flowCode, _context.StationId, _workState.ProductTypeId, _workState.LineId);
-            if (!rulesOk) // 编码规则校验不通过
+            var flowResponse = new FlowCodeVerifyPayload()
+            {
+                FlowCode = flowCode,
+                ProductTypeId = _workState.ProductTypeId,
+                LineId = _workState.LineId,
+                TrayCode = _workState.TrayCode,
+                Mode = FlowCodeVerifyMode.RulesOnly,
+            };
+            var response = await InvokeHandlerAsync(DeviceHandlerKeys.FlowCode, flowResponse);
+            if (response == null)
+            {
+                _context.Log("<返修流水码验证> 失败：Handler 未响应", LogLevel.Warning);
+                return ((int)SCADAResponseCode.GeneralError, null);
+            }
+
+            if (!response.Success)
             {
                 _context.Log("<返修流水码验证> 失败：编码规则不通过", LogLevel.Warning);
                 return ((int)SCADAResponseCode.FlowCodeInvalid, null);

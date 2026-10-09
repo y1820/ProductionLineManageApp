@@ -3,7 +3,11 @@
     <OutputType>WinExe</OutputType>
     <RootNamespace>ProductionLineManage.Host</RootNamespace>
     <AssemblyName>ProductionLineManage.Host</AssemblyName>
+    <ApplicationIcon>AppICO3.ico</ApplicationIcon>
   </PropertyGroup>
+  <ItemGroup>
+    <Content Include="AppICO3.ico" />
+  </ItemGroup>
   <ItemGroup>
     <PackageReference Include="HandyControl" Version="3.5.1" />
     <PackageReference Include="Microsoft.Extensions.Configuration" Version="8.0.0" />

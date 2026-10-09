@@ -18,8 +18,15 @@ namespace ProductionLineManage.Core.Models.Device
 
         /// <summary> 托盘码 </summary>
         public string TrayCode { get; set; } = "--";
-    }
 
+        /// <summary> 模式，用来区分不同业务 </summary>
+        public FlowCodeVerifyMode Mode { get; set; } = 0;
+    }
+    public enum FlowCodeVerifyMode
+    {
+        Full = 0,       // 现在正常 200：规则 + 上工位 + 过站记录
+        RulesOnly = 1   // 现在返修工位 200：只校编码规则
+    }
     /// <summary> 流水码验证 Handler 返回结果 </summary>
     public class FlowCodeVerifyResult
     {

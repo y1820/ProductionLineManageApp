@@ -12,8 +12,6 @@ namespace ProductionLineManage.Host
     {
         private readonly IDeviceStatusManager _statusManager;
         private readonly IDataCacheService _cacheService;
-        private readonly IMaterialService _materialService;
-        private readonly IFlowCodeService _flowCodeService;
         private readonly IRepairService _repairService;
         private readonly IMotorCodeDispatchService _motorCodeDispatch;
         private readonly IStationDataTransferService _stationDataTransfer;
@@ -21,8 +19,6 @@ namespace ProductionLineManage.Host
         public Rld19145CommandInteractionFactory(
             IDeviceStatusManager statusManage,
             IDataCacheService cacheService,
-            IMaterialService materialService,
-            IFlowCodeService flowCodeService,
             IRepairService repairService,
             IMotorCodeDispatchService motorCodeDispatch,
             IStationDataTransferService stationDataTransfer,
@@ -30,8 +26,6 @@ namespace ProductionLineManage.Host
         {
             _statusManager = statusManage;
             _cacheService = cacheService;
-            _materialService = materialService;
-            _flowCodeService = flowCodeService;
             _repairService = repairService;
             _motorCodeDispatch = motorCodeDispatch;
             _stationDataTransfer = stationDataTransfer;
@@ -46,7 +40,6 @@ namespace ProductionLineManage.Host
                 _statusManager,
                 handlers,
                 _cacheService,
-                _flowCodeService,
                 _repairService,
                 _motorCodeDispatch,
                 _stationDataTransfer);
