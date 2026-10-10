@@ -3,6 +3,7 @@ using System.ServiceModel.Description;
 using ProductionLineManage.Core.Configuration;
 using ProductionLineManage.Core.Services.ExternalWeb;
 using ProductionLineManage.Infrastructure.Logging;
+using ProductionLineManage.Line.RLD19145.ExternalWeb;
 
 namespace ProductionLineManage.Host.ExternalWeb
 {

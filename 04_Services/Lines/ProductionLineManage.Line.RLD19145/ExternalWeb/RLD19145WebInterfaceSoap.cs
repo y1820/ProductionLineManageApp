@@ -1,7 +1,7 @@
 ﻿using System.ServiceModel;
 using ProductionLineManage.Core.Services.ExternalWeb;
 
-namespace ProductionLineManage.Host.ExternalWeb
+namespace ProductionLineManage.Line.RLD19145.ExternalWeb
 {
     #region ===================== SOAP 契约 =====================
 
