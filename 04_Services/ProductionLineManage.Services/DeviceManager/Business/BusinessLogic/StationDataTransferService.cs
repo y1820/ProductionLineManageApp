@@ -56,10 +56,10 @@ namespace ProductionLineManage.Services.DeviceManager.Business.BusinessLogic
 
         #region ===================== IDeviceDataHandler =====================
 
-        /// <summary> 处理器标识，供 CommandLineLogic 路由 </summary>
+        /// <summary> 处理器标识，供 CommandInteractionType 路由 </summary>
         public string DataType => DeviceHandlerKeys.StationDataTransfer;
 
-        /// <summary> Handler 入口（可选；200 主路径由 CommandLineLogic 直接调 GetTransferWritesAsync） </summary>
+        /// <summary> Handler 入口（可选；200 主路径由 CommandInteractionType 直接调 GetTransferWritesAsync） </summary>
         public async Task<BusinessResponse> HandleAsync(DeviceDataMessage message, IDeviceTaskContext context)
         {
             var stationId = message.StationId;

@@ -29,7 +29,7 @@ namespace ProductionLineManage.Host
         public IInteractionType Create(IDeviceTaskContext context)
         {
             var handlers = _mediator.GetHandlers();
-            return new CommandLineLogic(
+            return new CommandInteractionType(
                 context,
                 _statusManager,
                 handlers,

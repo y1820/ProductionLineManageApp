@@ -13,10 +13,10 @@ using ProductionLineManage.Line.RLD19145.Profile;
 namespace ProductionLineManage.Line.RLD19145.Interaction
 {
     /// <summary>
-    /// 指令类型交互逻辑：处理业务中介转发的 PLC 请求码消息。
+    /// 指令型交互：处理业务中介转发的 PLC 请求码消息。
     /// 依赖设备状态、工位状态、地址映射及已注册的业务 Handler。
     /// </summary>
-    public class CommandLineLogic : IInteractionType
+    public class CommandInteractionType : IInteractionType
     {
         #region ===================== 字段与构造 =====================
 
@@ -41,7 +41,7 @@ namespace ProductionLineManage.Line.RLD19145.Interaction
         /// 字典：_handlers（200/500/8000/返修确认）
         /// 漏出的直接调用：900
         /// </summary>
-        public CommandLineLogic(
+        public CommandInteractionType(
             IDeviceTaskContext context,
             IDeviceStatusManager statusManager,
             IReadOnlyDictionary<string, IDeviceDataHandler> handlers,

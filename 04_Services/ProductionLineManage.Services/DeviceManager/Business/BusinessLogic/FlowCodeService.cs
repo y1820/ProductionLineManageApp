@@ -15,7 +15,7 @@ namespace ProductionLineManage.Services.DeviceManager.Business.BusinessLogic
 {
     /// <summary>
     /// 流水码验证服务：验证流水码格式、判断上工位是否合格、管理过站记录。
-    /// 同时作为 IDeviceDataHandler，供 CommandLineLogic 在请求码 200 时调用。
+    /// 同时作为 IDeviceDataHandler，供 CommandInteractionType 在请求码 200 时调用。
     /// </summary>
     public class FlowCodeService : IFlowCodeService, IDeviceDataHandler
     {
@@ -50,11 +50,11 @@ namespace ProductionLineManage.Services.DeviceManager.Business.BusinessLogic
 
         #region ===================== IDeviceDataHandler =====================
 
-        /// <summary> 处理器标识，供 CommandLineLogic 路由 </summary>
+        /// <summary> 处理器标识，供 CommandInteractionType 路由 </summary>
         public string DataType => DeviceHandlerKeys.FlowCode;
 
         /// <summary>
-        /// 流水码验证入口（由 CommandLineLogic 在收到 PLC 请求码 200 时触发）。
+        /// 流水码验证入口（由 CommandInteractionType 在收到 PLC 请求码 200 时触发）。
         /// message.Data 应为 <see cref="FlowCodeVerifyPayload"/>，型号/产线由编排层传入。
         /// </summary>
         public async Task<BusinessResponse> HandleAsync(DeviceDataMessage message, IDeviceTaskContext context)

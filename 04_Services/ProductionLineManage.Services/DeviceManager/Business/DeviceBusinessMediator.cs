@@ -71,7 +71,7 @@ namespace ProductionLineManage.Services.DeviceManager.Business
 
         #region ===================== 工位注册 =====================
 
-        /// <summary> 注册工位及其交互类型（CommandLineLogic 等） </summary>
+        /// <summary> 注册工位及其交互类型（CommandInteractionType 等） </summary>
         public Task RegisterStationAsync(int stationId, IInteractionType interaction)
         {
             lock (_lockObj)

@@ -43,7 +43,7 @@ namespace ProductionLineManage.Services.DeviceManager.Business.BusinessLogic
 
         #region ===================== IDeviceDataHandler =====================
 
-        /// <summary> 处理器标识，供 CommandLineLogic 路由 </summary>
+        /// <summary> 处理器标识，供 CommandInteractionType 路由 </summary>
         public string DataType => DeviceHandlerKeys.DataSave;
 
         /// <summary>
