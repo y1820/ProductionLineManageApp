@@ -16,5 +16,15 @@ namespace ProductionLineManage.Host
                 return new Rld19145LineProfile();
             return new Rld19145LineProfile();
         }
+
+        public static IRequestCodes CreateRequestCodes(string? activeLine)
+        {
+            var key = activeLine?.Trim() ?? string.Empty;
+            if (string.Equals(key, "RLD19145", StringComparison.OrdinalIgnoreCase))
+                return new Rld19145RequestCodes();
+
+            return new Rld19145RequestCodes();
+        }
     }
+
 }

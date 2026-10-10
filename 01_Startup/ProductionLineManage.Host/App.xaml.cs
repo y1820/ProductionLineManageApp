@@ -283,7 +283,7 @@ namespace ProductionLineManage.Host
             //注册指令交互类型工厂
             containerRegistry.RegisterSingleton<ICommandInteractionFactory, Rld19145CommandInteractionFactory>();
             //注册请求指令类
-            containerRegistry.RegisterInstance<IRequestCodes>(new Rld19145RequestCodes());
+            containerRegistry.RegisterInstance<IRequestCodes>(LineProfileFactory.CreateRequestCodes(activeLine));
 
             // 注册日志服务（单例）
             containerRegistry.RegisterSingleton<ILogger, FileLogger>();
