@@ -1,4 +1,6 @@
-﻿using ProductionLineManage.Core.Constants;
+﻿using Prism.Events;
+using ProductionLineManage.Core.Abstractions;
+using ProductionLineManage.Core.Constants;
 using ProductionLineManage.Core.Enums;
 using ProductionLineManage.Core.Events;
 using ProductionLineManage.Core.Models.DataBase;
@@ -9,7 +11,6 @@ using ProductionLineManage.Core.Services.DeviceManager.Connection;
 using ProductionLineManage.Core.Services.DeviceManager.InteractionType;
 using ProductionLineManage.Infrastructure.Logging;
 using ProductionLineManage.Services.DeviceManager.Drivers;
-using Prism.Events;
 
 namespace ProductionLineManage.Services.DeviceManager.Connection
 {
@@ -87,8 +88,9 @@ namespace ProductionLineManage.Services.DeviceManager.Connection
             IEventAggregator eventAggregator,
             IDeviceBusinessMediator businessMediator,
             IDeviceStatusManager deviceStatus,
-            IInteractionTypeFactory interactionFactory)
-            : this(config, logger, cacheService, eventAggregator, null, businessMediator, deviceStatus, interactionFactory)
+            IInteractionTypeFactory interactionFactory,
+            IRequestCodes requestCodes)
+            : this(config, logger, cacheService, eventAggregator, null, businessMediator, deviceStatus, interactionFactory, requestCodes)
         {
         }
 
@@ -101,7 +103,8 @@ namespace ProductionLineManage.Services.DeviceManager.Connection
             ISharedDriverPool? sharedDriverPool,
             IDeviceBusinessMediator businessMediator,
             IDeviceStatusManager deviceStatus,
-            IInteractionTypeFactory interactionFactory)
+            IInteractionTypeFactory interactionFactory,
+            IRequestCodes requestCodes)
         {
             _config = config;
             _logger = logger;
@@ -113,7 +116,7 @@ namespace ProductionLineManage.Services.DeviceManager.Connection
             _interactionFactory = interactionFactory;
 
             _businessChannel = new StationBusinessChannel(
-                businessMediator, this, logger, config.InteractionType, config.ScanIntervalMs);
+                businessMediator, this, logger, config.InteractionType, config.ScanIntervalMs, requestCodes);
 
             // bootstrap：Connection 心跳回调依赖 Acquisition，IssueModel / TaskIo 依赖二者
             StationAcquisition? acquisitionBootstrap = null;

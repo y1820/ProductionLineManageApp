@@ -1,4 +1,4 @@
-﻿namespace ProductionLineManage.Core.Enums
+﻿namespace ProductionLineManage.Line.RLD19145.Profile
 {
     #region ===================== PLC 请求指令码 =====================
 

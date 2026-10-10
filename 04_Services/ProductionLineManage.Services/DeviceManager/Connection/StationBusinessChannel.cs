@@ -1,8 +1,9 @@
-﻿using System.Threading.Channels;
+﻿using ProductionLineManage.Core.Abstractions;
 using ProductionLineManage.Core.Models.Device;
 using ProductionLineManage.Core.Services.DeviceManager.Business;
 using ProductionLineManage.Core.Services.DeviceManager.Connection;
 using ProductionLineManage.Infrastructure.Logging;
+using System.Threading.Channels;
 
 namespace ProductionLineManage.Services.DeviceManager.Connection
 {
@@ -49,6 +50,7 @@ namespace ProductionLineManage.Services.DeviceManager.Connection
             ILogger logger,
             string interactionType,
             int scanIntervalMs,
+            IRequestCodes requestCodes,
             int capacity = DefaultCapacity)
         {
             _mediator = mediator;
@@ -61,13 +63,15 @@ namespace ProductionLineManage.Services.DeviceManager.Connection
                 SingleReader = true,
                 SingleWriter = false
             });
+
             _codeGate = new StationCodeRequestGate(
                 _stationId,
                 interactionType,
                 context,
                 logger,
                 ForwardToChannelAsync,
-                scanIntervalMs);
+                scanIntervalMs,
+                requestCodes);
         }
 
         #endregion

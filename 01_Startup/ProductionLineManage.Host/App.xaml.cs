@@ -3,17 +3,27 @@ using DeviceModule.Views.Dialog;
 using MaterialModule.ViewModels.Dialog;
 using MaterialModule.Views.Dialog;
 using Microsoft.Extensions.Configuration;
+using Prism.Events;
+using Prism.Ioc;
+using Prism.Modularity;
+using Prism.Unity;
+using ProductionLineManage.Core.Abstractions;
+using ProductionLineManage.Core.Configuration;
 using ProductionLineManage.Core.Services.DataLoadGrop;
 using ProductionLineManage.Core.Services.DeviceManager;
 using ProductionLineManage.Core.Services.DeviceManager.Business;
 using ProductionLineManage.Core.Services.DeviceManager.Connection;
 using ProductionLineManage.Core.Services.DeviceManager.InteractionType;
+using ProductionLineManage.Core.Services.ExternalWeb;
 using ProductionLineManage.Core.Services.LoadingAnimationGrop;
+using ProductionLineManage.Core.Services.MotorCode;
 using ProductionLineManage.Core.Services.RepositoryGrop;
+using ProductionLineManage.Host.ExternalWeb;
 using ProductionLineManage.Host.SetupModule.ViewModels;
 using ProductionLineManage.Host.SetupModule.Views;
 using ProductionLineManage.Infrastructure.Data.Repository;
 using ProductionLineManage.Infrastructure.Logging;
+using ProductionLineManage.Line.RLD19145.Profile;
 using ProductionLineManage.Services.Common;
 using ProductionLineManage.Services.DataLoadGroup;
 using ProductionLineManage.Services.DeviceManager;
@@ -21,24 +31,15 @@ using ProductionLineManage.Services.DeviceManager.Business;
 using ProductionLineManage.Services.DeviceManager.Business.BusinessLogic;
 using ProductionLineManage.Services.DeviceManager.Connection;
 using ProductionLineManage.Services.DeviceManager.InteractionType;
-using ProductionLineManage.Core.Abstractions;
+using ProductionLineManage.Services.ExternalWeb;
+using ProductionLineManage.Services.MotorCode;
 using ProductionLineManage.Services.Repositories;
-using Prism.Events;
-using Prism.Ioc;
-using Prism.Modularity;
-using Prism.Unity;
+using ProductionLineManage.Shared.Infrastructure;
 using System.IO;
 using System.Windows;
 using Unity;
 using WorkmanshipModule.ViewModels.Dialog;
 using WorkmanshipModule.Views.Dialog;
-using ProductionLineManage.Core.Configuration;
-using ProductionLineManage.Core.Services.ExternalWeb;
-using ProductionLineManage.Host.ExternalWeb;
-using ProductionLineManage.Core.Services.MotorCode;
-using ProductionLineManage.Services.MotorCode;
-using ProductionLineManage.Services.ExternalWeb;
-using ProductionLineManage.Shared.Infrastructure;
 
 namespace ProductionLineManage.Host
 {
@@ -281,6 +282,8 @@ namespace ProductionLineManage.Host
             containerRegistry.RegisterInstance<ILineProfile>(lineProfile);
             //注册指令交互类型工厂
             containerRegistry.RegisterSingleton<ICommandInteractionFactory, Rld19145CommandInteractionFactory>();
+            //注册请求指令类
+            containerRegistry.RegisterInstance<IRequestCodes>(new Rld19145RequestCodes());
 
             // 注册日志服务（单例）
             containerRegistry.RegisterSingleton<ILogger, FileLogger>();

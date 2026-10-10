@@ -1,5 +1,5 @@
-﻿using ProductionLineManage.Core.Constants;
-using ProductionLineManage.Core.Enums;
+﻿using ProductionLineManage.Core.Abstractions;
+using ProductionLineManage.Core.Constants;
 using ProductionLineManage.Core.Models.Device;
 using ProductionLineManage.Core.Services.DeviceManager.Connection;
 using ProductionLineManage.Infrastructure.Logging;
@@ -75,6 +75,8 @@ namespace ProductionLineManage.Services.DeviceManager.Connection
         /// <summary> 物料码等待取消令牌 </summary>
         private CancellationTokenSource? _materialWaitCts;
 
+        private readonly IRequestCodes _requestCodes;
+
         #endregion
 
         #region ===================== 构造 =====================
@@ -87,6 +89,7 @@ namespace ProductionLineManage.Services.DeviceManager.Connection
             ILogger logger,
             Func<DeviceDataMessage, CancellationToken, ValueTask> forwardAsync,
             int scanIntervalMs,
+            IRequestCodes requestCodes,
             int? pendingTimeoutMs = null,
             int? pollIntervalMs = null)
         {
@@ -99,6 +102,7 @@ namespace ProductionLineManage.Services.DeviceManager.Connection
                 ?? Math.Max(DefaultPendingTimeoutMs, scanIntervalMs * 60);
             _pollIntervalMs = pollIntervalMs
                 ?? Math.Min(DefaultPollIntervalMs, Math.Max(20, scanIntervalMs / 5));
+            _requestCodes = requestCodes;
         }
 
         #endregion
@@ -222,7 +226,7 @@ namespace ProductionLineManage.Services.DeviceManager.Connection
                 return;
             }
 
-            if (requestCode == (int)PLCRequestCode.Handshake)
+            if (requestCode == _requestCodes.Handshake)
             {
                 ClearCodeSnapshotLocked();
                 ClearPendingLocked("收到握手 100");
@@ -231,10 +235,10 @@ namespace ProductionLineManage.Services.DeviceManager.Connection
             }
 
             // 指令型 200/500 不在门控层暂存，立即交给消费者
-            if (requestCode == (int)PLCRequestCode.FlowCodeVerify)
+            if (requestCode == _requestCodes.FlowCodeVerify)
                 EnsureFlowCodeMessageLocked(toForward);
 
-            if (requestCode == (int)PLCRequestCode.MaterialVerify)
+            if (requestCode == _requestCodes.MaterialVerify)
                 EnsureMaterialMessagesLocked(toForward);
 
             toForward.Add(message);

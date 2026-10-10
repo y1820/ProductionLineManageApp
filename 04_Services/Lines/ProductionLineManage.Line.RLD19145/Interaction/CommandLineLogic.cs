@@ -4,11 +4,11 @@ using ProductionLineManage.Core.Models.DataBase;
 using ProductionLineManage.Core.Models.Device;
 using ProductionLineManage.Core.Services.DataLoadGrop;
 using ProductionLineManage.Core.Services.DeviceManager;
-using ProductionLineManage.Core.Services.DeviceManager.Business;
 using ProductionLineManage.Core.Services.DeviceManager.Connection;
 using ProductionLineManage.Core.Services.DeviceManager.InteractionType;
 using ProductionLineManage.Core.Services.MotorCode;
 using ProductionLineManage.Infrastructure.Logging;
+using ProductionLineManage.Line.RLD19145.Profile;
 
 namespace ProductionLineManage.Line.RLD19145.Interaction
 {
