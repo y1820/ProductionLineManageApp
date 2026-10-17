@@ -320,12 +320,19 @@ BEGIN
 	[ReconnectIntervalMs] [int] NOT NULL,
 	[MaxReconnectAttempts] [int] NOT NULL,
 	[InteractionType] [varchar](20) NOT NULL DEFAULT ('Command'),
+	[CommandCodeTemplate] [varchar](50) NULL,
 	[IsIssueModel] [bit] NULL,
 	[IsEnabled] [bit] NOT NULL,
 	[Remarks] [varchar](255) NULL,
 	[CreateTime] [datetime] NULL DEFAULT GETDATE(),
 	[UpdateTime] [datetime] NOT NULL
 	) ;
+END
+GO
+
+IF COL_LENGTH(N'dbo.device_ConnectInfo', N'CommandCodeTemplate') IS NULL
+BEGIN
+	ALTER TABLE [dbo].[device_ConnectInfo] ADD [CommandCodeTemplate] [varchar](50) NULL;
 END
 GO
 

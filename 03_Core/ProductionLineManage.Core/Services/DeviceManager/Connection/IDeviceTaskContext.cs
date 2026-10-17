@@ -1,4 +1,5 @@
-﻿using ProductionLineManage.Core.Models.DataBase;
+﻿using ProductionLineManage.Core.CommandCodes;
+using ProductionLineManage.Core.Models.DataBase;
 using ProductionLineManage.Infrastructure.Logging;
 
 namespace ProductionLineManage.Core.Services.DeviceManager.Connection
@@ -13,6 +14,9 @@ namespace ProductionLineManage.Core.Services.DeviceManager.Connection
 
         /// <summary> 交互类型（指令型/信号型） </summary>
         string InteractionType { get; }
+
+        /// <summary> 本工位指令码模板；信号工位也会给出默认表，门禁未用到请求码时无影响 </summary>
+        ICommandCodeTemplate Codes { get; }
 
         /// <summary> 工位工艺信息 </summary>
         craft_StationInfo StationInfo { get; }

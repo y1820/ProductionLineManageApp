@@ -16,6 +16,7 @@
             <ResourceDictionary.MergedDictionaries>
                 <ResourceDictionary Source="pack://application:,,,/ProductionLineManage.Shared;component/Assets/Styles/Dictionary1.xaml" />
             </ResourceDictionary.MergedDictionaries>
+            <BooleanToVisibilityConverter x:Key="BoolToVis" />
         </ResourceDictionary>
     </UserControl.Resources>
 
@@ -153,6 +154,22 @@
                                     SelectedItem="{Binding LogicTypeItem}" />
                             </DockPanel>
                         </StackPanel>
+
+                        <!--  指令码模板（仅指令类型）  -->
+                        <DockPanel
+                            Margin="0,15,0,0"
+                            Visibility="{Binding IsCommandLogicType, Converter={StaticResource BoolToVis}}">
+                            <TextBlock Width="140" VerticalAlignment="Center">
+                                <Run Text="指令码模板:" />
+                                <Run Foreground="Red" Text="*" />
+                            </TextBlock>
+                            <ComboBox
+                                Width="280"
+                                HorizontalAlignment="Left"
+                                DisplayMemberPath="DisplayName"
+                                ItemsSource="{Binding CommandCodeTemplates}"
+                                SelectedItem="{Binding CommandCodeTemplateItem}" />
+                        </DockPanel>
 
                         <!--  SCADA 下发型号  -->
                         <DockPanel Margin="0,15,0,0">

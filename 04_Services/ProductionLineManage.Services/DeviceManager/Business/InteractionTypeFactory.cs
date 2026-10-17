@@ -10,7 +10,8 @@ using ProductionLineManage.Services.DeviceManager.InteractionType;
 namespace ProductionLineManage.Services.DeviceManager.Business
 {
     /// <summary>
-    /// 交互类型工厂：根据 device_ConnectInfo.LogicType 创建 SignalLineLogic / CommandLineLogic。
+    /// 交互类型工厂：根据 device_ConnectInfo.InteractionType 创建 SignalLineLogic / CommandLineLogic。
+    /// 指令码数字由工位 CommandCodeTemplate 决定，不在工厂里写死。
     /// 在 DeviceConnectionTask.StartAsync 采集线程启动前调用，注入 Mediator 全局 Handler 字典。
     /// </summary>
     public class InteractionTypeFactory : IInteractionTypeFactory

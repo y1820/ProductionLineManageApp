@@ -1,4 +1,5 @@
 ﻿using Microsoft.Identity.Client.Platforms.Features.WinFormsLegacyWebUi;
+using ProductionLineManage.Core.CommandCodes;
 using ProductionLineManage.Core.Constants;
 using ProductionLineManage.Core.Enums;
 using ProductionLineManage.Core.Models.DataBase;
@@ -30,6 +31,7 @@ namespace ProductionLineManage.Services.DeviceManager.InteractionType
         private readonly IRepairService _repairService;
         private readonly IMotorCodeDispatchService _motorCodeDispatch;
         private readonly IStationDataTransferService _stationDataTransfer;
+        private readonly ICommandCodeTemplate _codes;
 
         /// <summary>本实例私有的交互编排状态，不交给 Mediator 管理</summary>
         private readonly StationWorkState _workState;
@@ -61,6 +63,7 @@ namespace ProductionLineManage.Services.DeviceManager.InteractionType
             _repairService = repairService;
             _motorCodeDispatch = motorCodeDispatch;
             _stationDataTransfer = stationDataTransfer;
+            _codes = context.Codes;
             _workState = new StationWorkState { StationId = context.StationId, LineId = context.StationInfo.LineId };
         }
 
@@ -238,7 +241,7 @@ namespace ProductionLineManage.Services.DeviceManager.InteractionType
             if (!TryValidateRequestSequence(requestCode, out var rejectReason)) // 校验指令顺序与周期状态
             {
                 _context.Log($"<指令处理> 拒绝，请求码={requestCode}，原因={rejectReason}", LogLevel.Warning);
-                await WriteResponseAsync((int)SCADAResponseCode.SequenceNotAllowed); // 回写顺序不允许
+                await WriteResponseAsync(_codes.SequenceNotAllowed); // 回写顺序不允许
                 return;
             }
 
@@ -249,38 +252,26 @@ namespace ProductionLineManage.Services.DeviceManager.InteractionType
             {
                 _context.Log($"<指令处理> 执行中，分发请求码={requestCode}");
 
-                switch (requestCode)
+                if (requestCode == _codes.Handshake)
+                    responseCode = await HandleHandshakeAsync();
+                else if (requestCode == _codes.FlowCodeVerify)
+                    (responseCode, dataPayload) = await HandleFlowCodeVerifyAsync();
+                else if (requestCode == _codes.MaterialVerify)
+                    (responseCode, dataPayload) = await HandleMaterialVerifyAsync();
+                else if (requestCode == _codes.SaveData)
+                    responseCode = await HandleSaveDataExtendedAsync();
+                else if (requestCode == _codes.MotorCodeFetch)
+                    responseCode = await HandleMotorCodeFetchAsync();
+                else
                 {
-                    case (int)PLCRequestCode.Handshake:
-                        responseCode = await HandleHandshakeAsync();
-                        break;
-
-                    case (int)PLCRequestCode.FlowCodeVerify:
-                        (responseCode, dataPayload) = await HandleFlowCodeVerifyAsync();
-                        break;
-
-                    case (int)PLCRequestCode.MaterialVerify:
-                        (responseCode, dataPayload) = await HandleMaterialVerifyAsync();
-                        break;
-
-                    case (int)PLCRequestCode.SaveDataExtended:
-                        responseCode = await HandleSaveDataExtendedAsync();
-                        break;
-
-                    case (int)PLCRequestCode.MotorCodeFetch:
-                        responseCode = await HandleMotorCodeFetchAsync();
-                        break;
-
-                    default:
-                        _context.Log($"未知指令码: {requestCode}", LogLevel.Warning);
-                        responseCode = (int)SCADAResponseCode.GeneralError;
-                        break;
+                    _context.Log($"未知指令码: {requestCode}", LogLevel.Warning);
+                    responseCode = _codes.GeneralError;
                 }
 
                 _context.Log($"<指令处理> 执行中，写入响应码={responseCode}");
                 await WriteResponseAsync(responseCode); // 回写 SCADA 响应码给 PLC
 
-                if (dataPayload != null && requestCode == (int)PLCRequestCode.MaterialVerify) // 500 验证通过时回写物料码
+                if (dataPayload != null && requestCode == _codes.MaterialVerify) // 500 验证通过时回写物料码
                 {
                     _context.Log($"<指令处理> 执行中，回写物料码={dataPayload}");
                     await WriteMaterialCodeAsync(dataPayload);
@@ -291,52 +282,52 @@ namespace ProductionLineManage.Services.DeviceManager.InteractionType
             catch (TimeoutException ex)
             {
                 _context.Log($"<指令处理> 超时，请求码={requestCode}，{ex.Message}", LogLevel.Error);
-                await WriteResponseAsync((int)SCADAResponseCode.NeedRetry); // 超时提示 PLC 重试
+                await WriteResponseAsync(_codes.NeedRetry); // 超时提示 PLC 重试
             }
             catch (Exception ex)
             {
                 _context.Log($"<指令处理> 异常，请求码={requestCode}，{ex.Message}", LogLevel.Error);
-                await WriteResponseAsync((int)SCADAResponseCode.GeneralError); // 通用错误响应
+                await WriteResponseAsync(_codes.GeneralError); // 通用错误响应
             }
         }
 
-        /// <summary>校验指令是否允许在当前业务周期内执行（100/200/500/8000/900 顺序门禁）</summary>
+        /// <summary>校验指令是否允许在当前业务周期内执行（握手/流水码/物料/保存顺序门禁）</summary>
         private bool TryValidateRequestSequence(int requestCode, out string rejectReason)
         {
             rejectReason = string.Empty;
 
-            if (requestCode == (int)PLCRequestCode.Handshake) // 100 握手始终允许，用于开启新周期
+            if (requestCode == _codes.Handshake) // 握手始终允许，用于开启新周期
                 return true;
 
-            if (_workState.IsBusinessCycleEnded) // 8000 完成后除 100 外均拒绝
+            if (_workState.IsBusinessCycleEnded) // 保存完成后除握手外均拒绝
             {
-                rejectReason = "业务周期已结束，请先发送 100 重新握手";
+                rejectReason = $"业务周期已结束，请先发送 {_codes.Handshake} 重新握手";
                 return false;
             }
 
             if (!_workState.IsInteractionStarted) // 未完成握手不允许其他指令
             {
-                rejectReason = "尚未完成 100 握手，不允许执行其他指令";
+                rejectReason = $"尚未完成 {_codes.Handshake} 握手，不允许执行其他指令";
                 return false;
             }
 
-            if ((requestCode == (int)PLCRequestCode.MaterialVerify
-                 || requestCode == (int)PLCRequestCode.MotorCodeFetch)
-                && !_workState.IsFlowCodeQualified) // 500/900 依赖 200 流水码验证通过
+            if ((requestCode == _codes.MaterialVerify
+                 || requestCode == _codes.MotorCodeFetch)
+                && !_workState.IsFlowCodeQualified) // 物料/电机码依赖流水码验证通过
             {
-                rejectReason = requestCode == (int)PLCRequestCode.MotorCodeFetch
-                    ? "流水码尚未通过 200 验证，不允许获取电机码"
-                    : "流水码尚未通过 200 验证，不允许执行物料验证";
+                rejectReason = requestCode == _codes.MotorCodeFetch
+                    ? $"流水码尚未通过 {_codes.FlowCodeVerify} 验证，不允许获取电机码"
+                    : $"流水码尚未通过 {_codes.FlowCodeVerify} 验证，不允许执行物料验证";
                 return false;
             }
-            if (requestCode == (int)PLCRequestCode.MotorCodeFetch
-                && string.IsNullOrEmpty(GetCurrentFlowCodeFromStatus())) // 900 需要有效流水码
+            if (requestCode == _codes.MotorCodeFetch
+                && string.IsNullOrEmpty(GetCurrentFlowCodeFromStatus()))
             {
                 rejectReason = "流水码为空，不允许获取电机码";
                 return false;
             }
 
-            if (requestCode == (int)PLCRequestCode.SaveDataExtended) // 8000 门禁
+            if (requestCode == _codes.SaveData)
             {
                 if (string.IsNullOrEmpty(GetCurrentFlowCodeFromStatus()))
                 {
@@ -346,7 +337,7 @@ namespace ProductionLineManage.Services.DeviceManager.InteractionType
 
                 if (!_workState.IsFlowCodeQualified)
                 {
-                    rejectReason = "流水码尚未通过 200 验证，不允许保存数据";
+                    rejectReason = $"流水码尚未通过 {_codes.FlowCodeVerify} 验证，不允许保存数据";
                     return false;
                 }
             }
@@ -424,7 +415,7 @@ namespace ProductionLineManage.Services.DeviceManager.InteractionType
                st => st.RunState = RunState.Running);
             await Task.Delay(5);
             _context.Log("<握手> 完成，IsInteractionStarted=true");
-            return (int)SCADAResponseCode.HandshakeSuccess;
+            return _codes.HandshakeSuccess;
         }
 
         #endregion
@@ -438,7 +429,7 @@ namespace ProductionLineManage.Services.DeviceManager.InteractionType
             if (!craftOk) // 型号/产线上下文未就绪
             {
                 _context.Log($"<流水码验证> 中止：{craftReason}", LogLevel.Warning);
-                return ((int)SCADAResponseCode.FlowCodeInvalid, null);
+                return (_codes.FlowCodeInvalid, null);
             }
 
             _workState.IsCurrentRepairStation = IsRepairStation();
@@ -457,7 +448,7 @@ namespace ProductionLineManage.Services.DeviceManager.InteractionType
             if (string.IsNullOrEmpty(flowCode)) // 流水码为空则直接失败
             {
                 _context.Log("<流水码验证> 失败：流水码为空", LogLevel.Warning);
-                return ((int)SCADAResponseCode.FlowCodeInvalid, null);
+                return (_codes.FlowCodeInvalid, null);
             }
 
             _context.Log($"<流水码验证> 执行中，流水码={flowCode}，型号Id={_workState.ProductTypeId}，产线Id={_workState.LineId}，调用 FlowCode Handler");
@@ -472,7 +463,7 @@ namespace ProductionLineManage.Services.DeviceManager.InteractionType
             if (response == null)
             {
                 _context.Log("<流水码验证> 失败：Handler 未响应", LogLevel.Warning);
-                return ((int)SCADAResponseCode.GeneralError, null);
+                return (_codes.GeneralError, null);
             }
 
             if (response.Success)
@@ -487,13 +478,13 @@ namespace ProductionLineManage.Services.DeviceManager.InteractionType
                 }
                 _context.Log($"<流水码验证> 完成，通过，流水码={flowCode}，过站Id={_workState.StationRecordId}，IsRepairProcess={_workState.IsRepairProcess}，RepairCount={_workState.RepairCount}，IsFlowCodeQualified=true");
                 await ApplyStationDataTransferAsync(flowCode); // 200 通过后按配置写入历史传值
-                return ((int)SCADAResponseCode.FlowCodeValid, null);
+                return (_codes.FlowCodeValid, null);
             }
 
             _workState.IsFlowCodeQualified = false;
             _workState.StationRecordId = 0;
             _context.Log($"<流水码验证> 完成，失败，原因={response.Message}，IsFlowCodeQualified=false", LogLevel.Warning);
-            return ((int)SCADAResponseCode.FlowCodeInvalid, null);
+            return (_codes.FlowCodeInvalid, null);
         }
 
         #endregion
@@ -509,7 +500,7 @@ namespace ProductionLineManage.Services.DeviceManager.InteractionType
             if (string.IsNullOrEmpty(flowCode))
             {
                 _context.Log("<返修流水码验证> 失败：流水码为空", LogLevel.Warning);
-                return ((int)SCADAResponseCode.FlowCodeInvalid, null);
+                return (_codes.FlowCodeInvalid, null);
             }
 
             var rulesOk = await _flowCodeService.ValidateFlowCodeRulesOnlyAsync(
@@ -517,7 +508,7 @@ namespace ProductionLineManage.Services.DeviceManager.InteractionType
             if (!rulesOk) // 编码规则校验不通过
             {
                 _context.Log("<返修流水码验证> 失败：编码规则不通过", LogLevel.Warning);
-                return ((int)SCADAResponseCode.FlowCodeInvalid, null);
+                return (_codes.FlowCodeInvalid, null);
             }
 
             var (queryOk, allowSequence, repairCount, queryMessage) =
@@ -527,13 +518,13 @@ namespace ProductionLineManage.Services.DeviceManager.InteractionType
             if (!queryOk) // 过站历史查询失败
             {
                 _context.Log($"<返修流水码验证> 失败：{queryMessage}", LogLevel.Warning);
-                return ((int)SCADAResponseCode.FlowCodeInvalid, null);
+                return (_codes.FlowCodeInvalid, null);
             }
 
             if (!_context.HasMapping(DataNameConstants.AllowRepairStation)) // 缺少允许返修工位映射
             {
                 _context.Log("<返修流水码验证> 失败：缺少「允许返修工位」地址映射", LogLevel.Warning);
-                return ((int)SCADAResponseCode.FlowCodeInvalid, null);
+                return (_codes.FlowCodeInvalid, null);
             }
 
             await WriteAllowRepairSequenceAsync(allowSequence); // 写入允许返修顺序到 PLC
@@ -545,7 +536,7 @@ namespace ProductionLineManage.Services.DeviceManager.InteractionType
             _workState.RepairCount = repairCount;
 
             _context.Log($"<返修流水码验证> 完成，AllowSeq={allowSequence}，RepairCount={repairCount}，IsFlowCodeQualified=true");
-            return ((int)SCADAResponseCode.FlowCodeValid, null);
+            return (_codes.FlowCodeValid, null);
         }
 
         /// <summary>返修工位 8000：确认返修目标工位后保存数据</summary>
@@ -557,27 +548,27 @@ namespace ProductionLineManage.Services.DeviceManager.InteractionType
             if (string.IsNullOrEmpty(flowCode))
             {
                 _context.Log("<返修保存> 失败：流水码为空", LogLevel.Warning);
-                return (int)SCADAResponseCode.DatabaseError;
+                return _codes.DatabaseError;
             }
 
             if (!_context.HasMapping(DataNameConstants.RequestRepairStation)) // 缺少请求返修工位映射
             {
                 _context.Log("<返修保存> 失败：缺少「请求返修工位」地址映射", LogLevel.Warning);
-                return (int)SCADAResponseCode.DatabaseError;
+                return _codes.DatabaseError;
             }
 
             var requestSequence = await ReadRequestRepairSequenceAsync();
             if (requestSequence <= 0 || _workState.AllowRepairSequence <= 0 || requestSequence > _workState.AllowRepairSequence) // 返修顺序校验
             {
                 _context.Log($"<返修保存> 失败：请求顺序={requestSequence}，允许顺序={_workState.AllowRepairSequence}", LogLevel.Warning);
-                return (int)SCADAResponseCode.DatabaseError;
+                return _codes.DatabaseError;
             }
 
             var (craftOk, craftReason) = await TryEnsureCraftContextAsync();
             if (!craftOk)
             {
                 _context.Log($"<返修保存> 中止：{craftReason}", LogLevel.Warning);
-                return (int)SCADAResponseCode.DatabaseError;
+                return _codes.DatabaseError;
             }
 
             var repairPayload = new RepairConfirmPayload
@@ -595,7 +586,7 @@ namespace ProductionLineManage.Services.DeviceManager.InteractionType
             if (repairResponse?.Success != true || repairResponse.Data is not RepairConfirmResult confirmResult)
             {
                 _context.Log($"<返修保存> 返修确认失败：{repairResponse?.Message ?? "Handler 未响应"}", LogLevel.Warning);
-                return (int)SCADAResponseCode.DatabaseError;
+                return _codes.DatabaseError;
             }
 
             _workState.StationRecordId = confirmResult.StationRecordId;
@@ -627,11 +618,11 @@ namespace ProductionLineManage.Services.DeviceManager.InteractionType
                 await TryWriteNextStationCodeAsync(confirmResult.TargetStationId); // 写入下一工位代号
                 _context.Log($"<返修保存> 完成，流水码={flowCode}，结束业务周期");
                 await CompleteBusinessCycleAsync();
-                return (int)SCADAResponseCode.SaveSuccess;
+                return _codes.SaveSuccess;
             }
 
             _context.Log($"<返修保存> 失败，原因={saveResponse?.Message ?? "Handler 未响应"}", LogLevel.Warning);
-            return (int)SCADAResponseCode.DatabaseError;
+            return _codes.DatabaseError;
         }
 
         #endregion
@@ -647,28 +638,28 @@ namespace ProductionLineManage.Services.DeviceManager.InteractionType
                 !_context.HasMapping(DataNameConstants.MaterialType)) // 地址映射缺失
             {
                 _context.Log("<物料验证> 失败：缺少「物料码」或「物料类型」地址映射，终止零部件验证", LogLevel.Warning);
-                return ((int)SCADAResponseCode.MaterialInvalid, null);
+                return (_codes.MaterialInvalid, null);
             }
 
             var materialCode = await ReadMaterialCodeAsync();
             if (string.IsNullOrEmpty(materialCode))
             {
                 _context.Log("<物料验证> 失败：物料码为空", LogLevel.Warning);
-                return ((int)SCADAResponseCode.MaterialInvalid, null);
+                return (_codes.MaterialInvalid, null);
             }
 
             var materialType = await ReadMaterialTypeAsync();
             if (string.IsNullOrEmpty(materialType))
             {
                 _context.Log("<物料验证> 失败：物料类型为空", LogLevel.Warning);
-                return ((int)SCADAResponseCode.MaterialInvalid, null);
+                return (_codes.MaterialInvalid, null);
             }
 
             var (craftOk, craftReason) = await TryEnsureCraftContextAsync();
             if (!craftOk)
             {
                 _context.Log($"<物料验证> 中止：{craftReason}", LogLevel.Warning);
-                return ((int)SCADAResponseCode.MaterialInvalid, null);
+                return (_codes.MaterialInvalid, null);
             }
 
             var rulesOnly = _workState.IsCurrentRepairStation; // 返修工位仅校验编码规则
@@ -688,24 +679,24 @@ namespace ProductionLineManage.Services.DeviceManager.InteractionType
             if (response == null)
             {
                 _context.Log("<物料验证> 失败：Handler 未响应", LogLevel.Warning);
-                return ((int)SCADAResponseCode.GeneralError, null);
+                return (_codes.GeneralError, null);
             }
 
             if (response.Success && response.Data is MaterialVerifyResult verifyResult)
             {
                 RecordValidatedMaterial(verifyResult);
                 _context.Log($"<物料验证> 完成，通过，物料码={materialCode}，已验证 {_workState.ValidatedMaterials.Count} 种物料");
-                return ((int)SCADAResponseCode.MaterialValid, materialCode);
+                return (_codes.MaterialValid, materialCode);
             }
 
             if (response.Data is MaterialVerifyResult failedResult && failedResult.IsRuleFailure)
             {
                 _context.Log($"<物料验证> 完成，编码规则不通过，原因={response.Message}", LogLevel.Warning);
-                return ((int)SCADAResponseCode.MaterialRuleNotMatch, null);
+                return (_codes.MaterialRuleNotMatch, null);
             }
 
             _context.Log($"<物料验证> 完成，失败，原因={response.Message}", LogLevel.Warning);
-            return ((int)SCADAResponseCode.MaterialInvalid, null);
+            return (_codes.MaterialInvalid, null);
         }
 
         #endregion
@@ -730,33 +721,33 @@ namespace ProductionLineManage.Services.DeviceManager.InteractionType
             if (string.IsNullOrEmpty(flowCode))
             {
                 _context.Log("<保存数据> 失败：流水码为空（DeviceStatus.CurrentFlowCode）", LogLevel.Warning);
-                return (int)SCADAResponseCode.DatabaseError;
+                return _codes.DatabaseError;
             }
 
             if (!_workState.IsFlowCodeQualified) // 流水码未通过 200 验证
             {
-                _context.Log("<保存数据> 失败：流水码尚未通过 200 验证", LogLevel.Warning);
-                return (int)SCADAResponseCode.DatabaseError;
+                _context.Log($"<保存数据> 失败：流水码尚未通过 {_codes.FlowCodeVerify} 验证", LogLevel.Warning);
+                return _codes.DatabaseError;
             }
 
             if (_workState.StationRecordId <= 0) // 过站记录 Id 无效
             {
                 _context.Log("<保存数据> 失败：过站记录 Id 无效", LogLevel.Warning);
-                return (int)SCADAResponseCode.DatabaseError;
+                return _codes.DatabaseError;
             }
 
             var (craftOk, craftReason) = await TryEnsureCraftContextAsync();
             if (!craftOk)
             {
                 _context.Log($"<保存数据> 中止：{craftReason}", LogLevel.Warning);
-                return (int)SCADAResponseCode.DatabaseError;
+                return _codes.DatabaseError;
             }
 
             var (materialReady, materialReason) = await TryEnsureMaterialsReadyForSaveAsync();
             if (!materialReady) // 工位物料未全部验证
             {
                 _context.Log($"<保存数据> 失败：{materialReason}", LogLevel.Warning);
-                return (int)SCADAResponseCode.DatabaseError;
+                return _codes.DatabaseError;
             }
 
             _context.Log($"<保存数据> 执行中，流水码={flowCode}，型号Id={_workState.ProductTypeId}，过站Id={_workState.StationRecordId}，读取过站判定...");
@@ -789,11 +780,11 @@ namespace ProductionLineManage.Services.DeviceManager.InteractionType
                 await TryWriteNextStationCodeAsync(ResolveNextStationIdFromProcessFlow()); // 写入工艺流程下一工位
                 _context.Log($"<保存数据> 完成，流水码={flowCode}，结束业务周期");
                 await CompleteBusinessCycleAsync();
-                return (int)SCADAResponseCode.SaveSuccess;
+                return _codes.SaveSuccess;
             }
 
             _context.Log($"<保存数据> 失败，原因={response?.Message ?? "Handler 未响应"}", LogLevel.Warning);
-            return (int)SCADAResponseCode.DatabaseError;
+            return _codes.DatabaseError;
         }
 
         #endregion
@@ -807,7 +798,7 @@ namespace ProductionLineManage.Services.DeviceManager.InteractionType
             if (string.IsNullOrWhiteSpace(flowCode))
             {
                 _context.Log("<900> 失败：当前流水码为空", LogLevel.Warning);
-                return (int)SCADAResponseCode.GeneralError;
+                return _codes.GeneralError;
             }
             _context.Log($"<900> 开始，流水码={flowCode}，型号Id={_workState.ProductTypeId}");
             var result = await _motorCodeDispatch.GetDispatchDataAsync(flowCode, _workState.ProductTypeId);
@@ -815,15 +806,15 @@ namespace ProductionLineManage.Services.DeviceManager.InteractionType
             {
                 _context.Log($"<900> 失败：{result.ErrorMessage}", LogLevel.Warning);
                 if (result.ErrorMessage.Contains("未绑定电机码", StringComparison.Ordinal))
-                    return (int)SCADAResponseCode.MotorCodeNotFound;
+                    return _codes.MotorCodeNotFound;
                 if (result.ErrorMessage.Contains("平台代号", StringComparison.Ordinal))
-                    return (int)SCADAResponseCode.PlatformCodeNotConfigured;
-                return (int)SCADAResponseCode.GeneralError;
+                    return _codes.PlatformCodeNotConfigured;
+                return _codes.GeneralError;
             }
             await _context.WriteAsync(DataNameConstants.MotorCode, result.MotorCode); // 写入电机码
             await _context.WriteAsync(DataNameConstants.PlatformCode, result.PlatformCode); // 写入平台代号
             _context.Log($"<900> 成功，Motor={result.MotorCode}，Platform={result.PlatformCode}");
-            return (int)SCADAResponseCode.MotorCodeFetchSuccess;
+            return _codes.MotorCodeFetchSuccess;
         }
 
         #endregion

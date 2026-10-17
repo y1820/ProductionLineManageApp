@@ -1,4 +1,5 @@
-﻿using ProductionLineManage.Core.Constants;
+﻿using ProductionLineManage.Core.CommandCodes;
+using ProductionLineManage.Core.Constants;
 using ProductionLineManage.Core.Models.DataBase;
 using ProductionLineManage.Core.Services.RepositoryGrop;
 using Prism.Commands;
@@ -63,6 +64,8 @@ namespace DeviceModule.ViewModels.Dialog
         private int _logicTypeIndex = 0;
         /// <summary>逻辑类型选择对象</summary>
         private string _logicTypeItem = InteractionTypeConstants.AllInteractionTypeTypes[0];
+        /// <summary>指令码模板选择对象</summary>
+        private ICommandCodeTemplate? _commandCodeTemplateItem = CommandCodeTemplateRegistry.Default;
         /// <summary>各协议连接字段</summary>
         private readonly DeviceConnectProtocolFields _connectionFields = new();
         /// <summary>扫描周期</summary>
@@ -154,8 +157,26 @@ namespace DeviceModule.ViewModels.Dialog
                 //手动更新选择索引值
                 LogicTypeIndex = LogicTypes.IndexOf(value);
                 RaisePropertyChanged();
+                RaisePropertyChanged(nameof(IsCommandLogicType));
+                if (IsCommandLogicType)
+                    CommandCodeTemplateItem ??= CommandCodeTemplateRegistry.Default;
+                else
+                    CommandCodeTemplateItem = null;
             }
         }
+
+        /// <summary>已登记的指令码模板</summary>
+        public IReadOnlyList<ICommandCodeTemplate> CommandCodeTemplates => CommandCodeTemplateRegistry.All;
+
+        /// <summary>当前选中的指令码模板</summary>
+        public ICommandCodeTemplate? CommandCodeTemplateItem
+        {
+            get => _commandCodeTemplateItem;
+            set => SetProperty(ref _commandCodeTemplateItem, value);
+        }
+
+        /// <summary>指令类型才显示/必填指令码模板</summary>
+        public bool IsCommandLogicType => LogicTypeItem == InteractionTypeConstants.Command;
 
         /// <summary>是否为分布式连接</summary>
         public bool IsDistributedMode
@@ -381,7 +402,8 @@ namespace DeviceModule.ViewModels.Dialog
         {
             return LineSelectedIndex != -1 &&
                    StationSelectedIndex != -1 &&
-                   ConnectionFields.IsValid();
+                   ConnectionFields.IsValid() &&
+                   (!IsCommandLogicType || CommandCodeTemplateItem != null);
         }
         /// <summary>是否存在重复的工位连接信息</summary>
         private bool IsDuplicate()
@@ -409,6 +431,7 @@ namespace DeviceModule.ViewModels.Dialog
                     DeviceCode = DeviceCode,
                     ProtocolType = ProtocolTypeItem,
                     InteractionType = LogicTypeItem,
+                    CommandCodeTemplate = IsCommandLogicType ? CommandCodeTemplateItem?.Key : null,
                     ConnectionMode = connectionMode,
                     ConnectionString = ConnectionFields.BuildConnectionString(),
                     ScanIntervalMs = ScanIntervalMs,

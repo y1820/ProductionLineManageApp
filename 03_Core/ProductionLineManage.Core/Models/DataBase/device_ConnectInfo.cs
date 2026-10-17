@@ -49,8 +49,13 @@ namespace ProductionLineManage.Core.Models.DataBase
 
         #region ===================== 交互与开关 =====================
 
-        /// <summary> 逻辑类型，决定设备的交互逻辑方式是指令型:100、200或单一信号型 </summary>
+        /// <summary> 逻辑类型，决定设备的交互逻辑方式是指令型或信号型 </summary>
         public string InteractionType { get; set; } = InteractionTypeConstants.Command;
+
+        /// <summary>
+        /// 指令码模板键（Code100 / Code12）。指令工位必填，空则运行时回退 Code100；信号工位为空。
+        /// </summary>
+        public string? CommandCodeTemplate { get; set; }
 
         /// <summary> 是否由软件下发型号 </summary>
         public bool IsIssueModel { get; set; }

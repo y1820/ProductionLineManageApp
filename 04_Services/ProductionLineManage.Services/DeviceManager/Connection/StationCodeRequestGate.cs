@@ -1,5 +1,4 @@
 ﻿using ProductionLineManage.Core.Constants;
-using ProductionLineManage.Core.Enums;
 using ProductionLineManage.Core.Models.Device;
 using ProductionLineManage.Core.Services.DeviceManager.Connection;
 using ProductionLineManage.Infrastructure.Logging;
@@ -8,7 +7,7 @@ namespace ProductionLineManage.Services.DeviceManager.Connection
 {
     /// <summary>
     /// 流水码/物料码请求门控：在业务消费者之前配对「码」与「请求/信号」。
-    /// PLC 先发 200/500 或扫码完成信号、码尚未就绪时暂存请求，码到达后再放行。
+    /// PLC 先发流水码/物料请求或扫码完成信号、码尚未就绪时暂存请求，码到达后再放行。
     /// </summary>
     internal sealed class StationCodeRequestGate : IDisposable
     {
@@ -203,7 +202,7 @@ namespace ProductionLineManage.Services.DeviceManager.Connection
             }
         }
 
-        /// <summary> 处理 RequestCode（100/200/500 等指令） </summary>
+        /// <summary> 处理 RequestCode（握手/流水码/物料等，数字由工位指令模板决定） </summary>
         private void PlanRequestCode(DeviceDataMessage message, List<DeviceDataMessage> toForward)
         {
             if (!TryParseRequestCode(message.Data, out var requestCode))
@@ -219,19 +218,20 @@ namespace ProductionLineManage.Services.DeviceManager.Connection
                 return;
             }
 
-            if (requestCode == (int)PLCRequestCode.Handshake)
+            var codes = _context.Codes;
+            if (requestCode == codes.Handshake)
             {
                 ClearCodeSnapshotLocked();
-                ClearPendingLocked("收到握手 100");
+                ClearPendingLocked($"收到握手 {codes.Handshake}");
                 toForward.Add(message);
                 return;
             }
 
-            // 指令型 200/500 不在门控层暂存，立即交给消费者
-            if (requestCode == (int)PLCRequestCode.FlowCodeVerify)
+            // 指令型流水码/物料请求不在门控层暂存，立即交给消费者
+            if (requestCode == codes.FlowCodeVerify)
                 EnsureFlowCodeMessageLocked(toForward);
 
-            if (requestCode == (int)PLCRequestCode.MaterialVerify)
+            if (requestCode == codes.MaterialVerify)
                 EnsureMaterialMessagesLocked(toForward);
 
             toForward.Add(message);

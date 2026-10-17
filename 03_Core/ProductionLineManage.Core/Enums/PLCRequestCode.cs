@@ -2,7 +2,7 @@
 {
     #region ===================== PLC 请求指令码 =====================
 
-    /// <summary> PLC 请求指令码（指令型交互，数值可按项目配置调整） </summary>
+    /// <summary> Code100 模板的请求码数值来源。运行时请用 ICommandCodeTemplate，不要直接按此枚举分发。 </summary>
     public enum PLCRequestCode
     {
         /// <summary> 无请求 </summary>
@@ -28,7 +28,7 @@
 
     #region ===================== SCADA 响应指令码 =====================
 
-    /// <summary> SCADA 响应指令码 </summary>
+    /// <summary> Code100 模板的响应码数值来源。运行时请用 ICommandCodeTemplate。 </summary>
     public enum SCADAResponseCode
     {
         /// <summary> 无响应 </summary>

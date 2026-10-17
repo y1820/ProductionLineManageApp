@@ -1,4 +1,5 @@
-﻿using ProductionLineManage.Core.Constants;
+﻿using ProductionLineManage.Core.CommandCodes;
+using ProductionLineManage.Core.Constants;
 using ProductionLineManage.Core.Enums;
 using ProductionLineManage.Core.Events;
 using ProductionLineManage.Core.Models.DataBase;
@@ -65,6 +66,9 @@ namespace ProductionLineManage.Services.DeviceManager.Connection
 
         /// <summary> 交互类型（指令型 / 信号型等） </summary>
         public string InteractionType => _config.InteractionType;
+
+        /// <summary> 本工位指令码模板；旧数据未填时回退 Code100 </summary>
+        public ICommandCodeTemplate Codes => CommandCodeTemplateRegistry.Resolve(_config.CommandCodeTemplate);
 
         /// <summary> 是否由软件下发型号 </summary>
         public bool IsIssueModel => _config.IsIssueModel;
@@ -192,7 +196,7 @@ namespace ProductionLineManage.Services.DeviceManager.Connection
                 var interaction = _interactionFactory.Create(_config.InteractionType, this);
                 await _businessMediator.RegisterStationAsync(StationId, interaction);
                 _logger.DeviceLog(StationId, _config.DeviceCode,
-                    $"交互类型已注册: LogicType={interaction.LogicType}");
+                    $"交互类型已注册: LogicType={interaction.LogicType}, 指令模板={Codes.Key}");
             }
             catch (Exception ex)
             {
@@ -208,7 +212,7 @@ namespace ProductionLineManage.Services.DeviceManager.Connection
             _connectionTask = Task.Run(() => _connection.RunLoopAsync(token));
 
             _logger.DeviceLog(StationId, _config.DeviceCode,
-                $"设备连接任务启动: 工位={_config.StationId}, 设备={_config.DeviceCode}, 逻辑类型={_config.InteractionType}");
+                $"设备连接任务启动: 工位={_config.StationId}, 设备={_config.DeviceCode}, 逻辑类型={_config.InteractionType}, 指令模板={Codes.Key}");
             return true;
         }
 

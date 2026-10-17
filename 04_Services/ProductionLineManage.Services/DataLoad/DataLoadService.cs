@@ -55,6 +55,8 @@ namespace ProductionLineManage.Services.DataLoadGroup
         /// <param name="progress">进度报告：(百分比, 提示文字)</param>
         public async Task LoadAllConfigurationsAsync(IProgress<(int percent, string message)> progress)
         {
+            await EnsureDeviceConnectTemplateColumnAsync();
+
             // ========== 第 1 部分：定义加载任务列表 ==========
             // 每项：(SQL, 显示名称, 异步加载动作)
             var tasks = new List<(string sql, string tableName, Func<Task> action)>();
@@ -189,6 +191,15 @@ namespace ProductionLineManage.Services.DataLoadGroup
             progress?.Report((100, "加载完成,准备跳转至主窗体"));
             // 让用户看到 100% 与完成文字后再关闭弹窗
             await Task.Delay(1500);
+        }
+
+        /// <summary> 已有库补上指令模板列，避免 SELECT/INSERT 因缺列失败 </summary>
+        private async Task EnsureDeviceConnectTemplateColumnAsync()
+        {
+            const string sql = @"
+IF OBJECT_ID(N'dbo.device_ConnectInfo', N'U') IS NOT NULL AND COL_LENGTH(N'dbo.device_ConnectInfo', N'CommandCodeTemplate') IS NULL
+    ALTER TABLE [dbo].[device_ConnectInfo] ADD [CommandCodeTemplate] [varchar](50) NULL;";
+            await _sqlHelper.ExecuteAsync(sql);
         }
 
         #endregion

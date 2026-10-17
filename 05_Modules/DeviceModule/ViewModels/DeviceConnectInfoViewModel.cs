@@ -1,4 +1,5 @@
-﻿using ProductionLineManage.Core.Constants;
+﻿using ProductionLineManage.Core.CommandCodes;
+using ProductionLineManage.Core.Constants;
 using ProductionLineManage.Core.Events;
 using ProductionLineManage.Core.Models.DataBase;
 using ProductionLineManage.Core.Services.DataLoadGrop;
@@ -475,6 +476,10 @@ namespace DeviceModule.ViewModels
         public string DeviceCode => RawData.DeviceCode;
         public string ProtocolType => RawData.ProtocolType;
         public string InteractionType => RawData.InteractionType;
+        public string CommandCodeTemplateDisplay =>
+            InteractionType == InteractionTypeConstants.Command
+                ? CommandCodeTemplateRegistry.GetDisplayName(RawData.CommandCodeTemplate)
+                : string.Empty;
         public string ConnectionMode => RawData.ConnectionMode;
         public string ConnectionString => RawData.ConnectionString;
         public int ScanIntervalMs => RawData.ScanIntervalMs;

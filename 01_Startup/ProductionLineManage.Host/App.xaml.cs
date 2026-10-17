@@ -21,7 +21,6 @@ using ProductionLineManage.Services.DeviceManager.Business;
 using ProductionLineManage.Services.DeviceManager.Business.BusinessLogic;
 using ProductionLineManage.Services.DeviceManager.Connection;
 using ProductionLineManage.Services.DeviceManager.InteractionType;
-using ProductionLineManage.Core.Abstractions;
 using ProductionLineManage.Services.Repositories;
 using Prism.Events;
 using Prism.Ioc;
@@ -265,13 +264,6 @@ namespace ProductionLineManage.Host
                 .SetBasePath(Directory.GetCurrentDirectory())
                 .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
                 .Build();
-            var activeLine = configuration["ActiveLine"] ?? string.Empty;//获取产线信息
-            ILineProfile lineProfile = new Rld19145LineProfile();
-            if(!string.Equals(lineProfile.LineKey, activeLine, StringComparison.OrdinalIgnoreCase))
-            {
-
-            }
-            containerRegistry.RegisterInstance<ILineProfile>(lineProfile);
             // 2. 注册 IConfiguration（使用 RegisterInstance）
             containerRegistry.RegisterInstance<IConfiguration>(configuration);
             // 注册 SQLHelper（单例，整个应用共享一个数据库连接）
@@ -337,7 +329,6 @@ namespace ProductionLineManage.Host
         {
             base.OnInitialized();
             RegisterDeviceHandlers();
-            Container.Resolve<ILogger>().Info($"当前产线：{Container.Resolve<ILineProfile>().DisplayName}","LineProfile");
         }
 
         #endregion

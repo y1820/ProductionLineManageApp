@@ -140,6 +140,12 @@
                     Binding="{Binding InteractionType, Mode=OneWay}"
                     Header="交互类型" />
 
+                <!--  指令码模板  -->
+                <DataGridTextColumn
+                    Width="180"
+                    Binding="{Binding CommandCodeTemplateDisplay, Mode=OneWay}"
+                    Header="指令码模板" />
+
 
                 <!--  连接模式  -->
                 <DataGridTextColumn

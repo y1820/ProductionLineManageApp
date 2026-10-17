@@ -1,4 +1,5 @@
-﻿using ProductionLineManage.Core.Constants;
+﻿using ProductionLineManage.Core.CommandCodes;
+using ProductionLineManage.Core.Constants;
 using ProductionLineManage.Core.Models.DataBase;
 using ProductionLineManage.Core.Services.RepositoryGrop;
 using Prism.Commands;
@@ -53,6 +54,7 @@ namespace DeviceModule.ViewModels.Dialog
         private int _logicTypeIndex = 0;
         /// <summary>逻辑类型选择对象</summary>
         private string _logicTypeItem = InteractionTypeConstants.AllInteractionTypeTypes[0];
+        private ICommandCodeTemplate? _commandCodeTemplateItem = CommandCodeTemplateRegistry.Default;
         private readonly DeviceConnectProtocolFields _connectionFields = new();
         private int _scanIntervalMs = 500;
         private int _heartbeatIntervalMs = 3000;
@@ -152,8 +154,23 @@ namespace DeviceModule.ViewModels.Dialog
                 //手动更新选择索引值
                 LogicTypeIndex = LogicTypes.IndexOf(value);
                 RaisePropertyChanged();
+                RaisePropertyChanged(nameof(IsCommandLogicType));
+                if (IsCommandLogicType)
+                    CommandCodeTemplateItem ??= CommandCodeTemplateRegistry.Default;
+                else
+                    CommandCodeTemplateItem = null;
             }
         }
+
+        public IReadOnlyList<ICommandCodeTemplate> CommandCodeTemplates => CommandCodeTemplateRegistry.All;
+
+        public ICommandCodeTemplate? CommandCodeTemplateItem
+        {
+            get => _commandCodeTemplateItem;
+            set => SetProperty(ref _commandCodeTemplateItem, value);
+        }
+
+        public bool IsCommandLogicType => LogicTypeItem == InteractionTypeConstants.Command;
 
         // 连接模式
         public bool IsDistributedMode
@@ -281,6 +298,9 @@ namespace DeviceModule.ViewModels.Dialog
             DeviceCode = _originalData.DeviceCode;
             ProtocolTypeItem = _originalData.ProtocolType;
             LogicTypeItem = _originalData.InteractionType;
+            CommandCodeTemplateItem = IsCommandLogicType
+                ? CommandCodeTemplateRegistry.Resolve(_originalData.CommandCodeTemplate)
+                : null;
             ConnectionFields.LoadFrom(_originalData.ProtocolType, _originalData.ConnectionString);
             ScanIntervalMs = _originalData.ScanIntervalMs;
             HeartbeatIntervalMs = _originalData.HeartbeatIntervalMs;
@@ -301,7 +321,8 @@ namespace DeviceModule.ViewModels.Dialog
         private bool CanEdit()
         {
             return !string.IsNullOrWhiteSpace(DeviceCode) &&
-                   ConnectionFields.IsValid();
+                   ConnectionFields.IsValid() &&
+                   (!IsCommandLogicType || CommandCodeTemplateItem != null);
         }
 
         private bool IsDuplicate()
@@ -330,6 +351,7 @@ namespace DeviceModule.ViewModels.Dialog
                     DeviceCode = DeviceCode,
                     ProtocolType = ProtocolTypeItem,
                     InteractionType = LogicTypeItem,
+                    CommandCodeTemplate = IsCommandLogicType ? CommandCodeTemplateItem?.Key : null,
                     ConnectionMode = connectionMode,
                     ConnectionString = ConnectionFields.BuildConnectionString(),
                     ScanIntervalMs = ScanIntervalMs,
