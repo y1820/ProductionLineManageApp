@@ -170,9 +170,8 @@
             <Button
                 Margin="30,0,0,0"
                 Command="{Binding DisconnectAllCommand}"
-                Content="断开所有连接"
-                />
-            <!--Visibility="{Binding CanStopAllConnect, Converter={StaticResource BoolToVisibility}}" -->
+                Content="断开所有连接" />
+            <!--  Visibility="{Binding CanStopAllConnect, Converter={StaticResource BoolToVisibility}}"  -->
         </WrapPanel>
 
         <!--  3. 看板内容（可滚动，按产线折叠）  -->
