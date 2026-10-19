@@ -73,6 +73,22 @@ namespace ProductionLineManage.Host.SetupModule.Views
         {
             _loadingService.Initialize(this.LoadingOverlay, this.loading); // 绑定 XAML 中的 LoadingOverlay 控件
             _viewModel.RunStartupFlow(); // 触发启动流程（ShowLoginDialog）
+
+            // 获取当前屏幕的工作区（不含任务栏）
+            var workArea = SystemParameters.WorkArea;
+
+            // 如果窗口当前尺寸超过了屏幕，就强制缩小
+            if (this.Width > workArea.Width)
+                this.Width = workArea.Width;
+
+            if (this.Height > workArea.Height)
+                this.Height = workArea.Height;
+
+            // 同时，如果窗口位置跑到了屏幕外，把它拉回来
+            if (this.Left < workArea.Left)
+                this.Left = workArea.Left;
+            if (this.Top < workArea.Top)
+                this.Top = workArea.Top;
         }
 
         /// <summary>

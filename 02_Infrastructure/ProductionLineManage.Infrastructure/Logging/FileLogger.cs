@@ -17,6 +17,7 @@ namespace ProductionLineManage.Infrastructure.Logging
         private readonly string _deviceLogRoot;   // 设备日志根路径
         private readonly object _lockObj = new object();
         private readonly int _maxRetentionDays = 30; // 日志保留天数
+        private readonly Timer _cleanLogTimer;//日志清理定时器
 
         #endregion
 
@@ -33,8 +34,11 @@ namespace ProductionLineManage.Infrastructure.Logging
 
             EnsureDirectoryExists(_appLogPath);   // 确保应用日志目录存在
             EnsureDirectoryExists(_deviceLogRoot); // 确保设备日志目录存在
-
-            Task.Run(() => CleanOldLogs()); // 异步清理过期日志
+            // 异步清理过期日志,24小时触发一次
+            _cleanLogTimer = new Timer(
+                _ => CleanOldLogs(),
+                null,TimeSpan.Zero,
+                TimeSpan.FromHours(24));
         }
 
         #endregion
